@@ -1,0 +1,1059 @@
+===== File: ./routes/auth.js =====
+const router = require("express").Router();
+const AuthValidator = require("../validator/auth");
+const authController = require("../controller/auth");
+
+router.post("/signup", AuthValidator.validateSignup, authController.signup);
+router.post("/login", AuthValidator.validateLogin, authController.login);
+router.post(
+  "/resend-verification",
+  AuthValidator.validateResendVerification,
+  authController.resendVerificationCode,
+);
+router.post(
+  "/verify-email",
+  AuthValidator.validateVerifyEmail,
+  authController.verifyEmail,
+);
+router.post(
+  "/forgot-password",
+  AuthValidator.validateForgotPassword,
+  authController.forgotPassword,
+);
+router.post(
+  "/reset-password",
+  AuthValidator.validateResetPassword,
+  authController.resetPassword,
+);
+
+module.exports = router;
+
+
+
+===== File: ./routes/cv.js =====
+const router = require("express").Router();
+const cvController = require("../controller/cv");
+
+router.post("/cv/generate", cvController.generateCV);
+
+module.exports = router;
+
+
+
+===== File: ./routes/templates.js =====
+const router = require("express").Router();
+const TemplateValidator = require("../validator/template");
+const templateController = require("../controller/template");
+
+router.get(
+  "/",
+  TemplateValidator.validateGetTemplates,
+  templateController.getTemplates,
+);
+
+module.exports = router;
+
+
+
+===== File: ./routes/api.js =====
+const router = require("express").Router();
+
+router.use("/auth", require("./auth"));
+router.use("/templates", require("./templates"));
+router.use("/cv", require("./cv"));
+
+module.exports = router;
+
+
+
+===== File: ./controller/template.js =====
+class TemplateController {
+  static service = require("../service/template");
+  async getTemplates(req, res) {
+    try {
+      const templates = await TemplateController.service.handleGetTemplates(
+        req.body,
+      );
+      return res.status(200).json({ payload: templates, success: true });
+    } catch (err) {
+      return res
+        .status(err.statusCode)
+        .send({ message: err.message, success: false });
+    }
+  }
+}
+
+module.exports = new TemplateController();
+
+
+
+===== File: ./controller/auth.js =====
+const statusCodes = require("../constants/status-codes");
+const APIResponse = require("../helpers/api-response-format");
+
+class AuthController {
+  static service = require("../service/user");
+  async login(req, res) {
+    try {
+      const token = await AuthController.service.handleLogin(req.body);
+      return res
+        .status(statusCodes.SUCCESS)
+        .json(
+          new APIResponse(statusCodes.SUCCESS, true, "Login successful", token),
+        );
+    } catch (err) {
+      return res
+        .status(err.statusCode)
+        .json(new APIResponse(err.statusCode, false, err.message));
+    }
+  }
+  async signup(req, res) {
+    try {
+      await AuthController.service.handleSignup(req.body);
+      return res
+        .status(statusCodes.CREATED)
+        .json(new APIResponse(statusCodes.CREATED, true, "User created", null));
+    } catch (err) {
+      return res
+        .status(err.statusCode)
+        .json(new APIResponse(err.statusCode, false, err.message));
+    }
+  }
+  async verifyEmail(req, res) {
+    try {
+      const token = await AuthController.service.handleVerifyEmail(req.body);
+      return res
+        .status(statusCodes.SUCCESS)
+        .json(
+          new APIResponse(statusCodes.SUCCESS, true, "Email verified", token),
+        );
+    } catch (err) {
+      return res
+        .status(err.statusCode)
+        .json(new APIResponse(err.statusCode, false, err.message));
+    }
+  }
+  async resendVerificationCode(req, res) {
+    try {
+      await AuthController.service.handleResendVerificationCode(req.body);
+      return res
+        .status(statusCodes.SUCCESS)
+        .json(
+          new APIResponse(
+            statusCodes.SUCCESS,
+            true,
+            "Verification code resent",
+          ),
+        );
+    } catch (err) {
+      return res
+        .status(err.statusCode)
+        .json(new APIResponse(err.statusCode, false, err.message));
+    }
+  }
+  async forgotPassword(req, res) {
+    try {
+      await AuthController.service.handleForgotPassword(req.body);
+      return res
+        .status(statusCodes.SUCCESS)
+        .json(
+          new APIResponse(
+            statusCodes.SUCCESS,
+            true,
+            "Password reset code sent",
+          ),
+        );
+    } catch (err) {
+      return res
+        .status(err.statusCode)
+        .json(new APIResponse(err.statusCode, false, err.message));
+    }
+  }
+  async resetPassword(req, res) {
+    try {
+      const token = await AuthController.service.handleResetPassword(req.body);
+      return res
+        .status(statusCodes.SUCCESS)
+        .json(
+          new APIResponse(
+            statusCodes.SUCCESS,
+            true,
+            "Password has been reset",
+            token,
+          ),
+        );
+    } catch (err) {
+      return res
+        .status(err.statusCode)
+        .json(new APIResponse(err.statusCode, false, err.message));
+    }
+  }
+}
+
+module.exports = new AuthController();
+
+
+
+===== File: ./controller/cv.js =====
+const statusCodes = require("../constants/status-codes");
+const APIResponse = require("../helpers/api-response-format");
+
+class CVController {
+  static service = require("../service/cv");
+  async generateCV(req, res) {
+    try {
+      const cvData = CVController.service.handleGenerateCV(req.body);
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", "inline; filename=cv.pdf");
+      return res
+        .status(statusCodes.CREATED)
+        .json(
+          new APIResponse(
+            statusCodes.CREATED,
+            true,
+            "CV generated successfully",
+            cvData,
+          ),
+        );
+    } catch (err) {
+      res
+        .status(err.statusCode)
+        .json(new APIResponse(err.statusCode, false, err.message));
+    }
+  }
+}
+
+module.exports = new CVController();
+
+
+
+===== File: ./errors/not-found-exception.js =====
+const statusCodes = require("../constants/status-codes");
+
+class NotFoundException extends Error {
+  constructor(message = "Resource not found") {
+    super(message);
+    this.name = "NotFoundException";
+    this.statusCode = statusCodes.NOT_FOUND;
+  }
+}
+
+module.exports = NotFoundException;
+
+
+
+===== File: ./errors/unauthorized-exception.js =====
+const statusCodes = require("../constants/status-codes");
+
+class UnAuthorizedException extends Error {
+  constructor(message = "Unauthorized access") {
+    super(message);
+    this.name = "UnAuthorizedException";
+    this.statusCode = statusCodes.UNAUTHORIZED;
+  }
+}
+
+module.exports = UnAuthorizedException;
+
+
+
+===== File: ./errors/bad-request-exception.js =====
+const statusCodes = require("../constants/status-codes");
+
+class BadRequestException extends Error {
+  constructor(message = "Bad request") {
+    super(message);
+    this.name = "BadRequestException";
+    this.statusCode = statusCodes.BAD_REQUEST;
+  }
+}
+
+module.exports = BadRequestException;
+
+
+
+===== File: ./errors/index.js =====
+const NotFoundException = require("./not-found-exception");
+const BadRequestException = require("./bad-request-exception");
+const ConflictException = require("./conflict-exception");
+const UnauthorizedException = require("./unauthorized-exception");
+const handleServiceError = require("./handle-service-error");
+
+module.exports = {
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+  UnauthorizedException,
+  handleServiceError,
+};
+
+
+
+===== File: ./errors/conflict-exception.js =====
+const statusCodes = require("../constants/status-codes");
+
+class ConflictException extends Error {
+  constructor(message = "Conflict occurred") {
+    super(message);
+    this.name = "ConflictException";
+    this.statusCode = statusCodes.CONFLICT;
+  }
+}
+module.exports = ConflictException;
+
+
+
+===== File: ./errors/handle-service-error.js =====
+const statusCodes = require("../constants/status-codes");
+
+module.exports = function handleServiceError(err) {
+  if (err.isJoi) {
+    return {
+      statusCode: statusCodes.BAD_REQUEST,
+      message: err.details.map((detail) => detail.message).join(", "),
+    };
+  }
+
+  if (err.statusCode && err.message) {
+    return {
+      statusCode: err.statusCode,
+      message: err.message,
+    };
+  }
+
+  return {
+    statusCode: statusCodes.INTERNAL_SERVER_ERROR,
+    message: "Internal Server Error",
+  };
+};
+
+
+
+===== File: ./index.js =====
+const express = require("express");
+const cors = require("cors");
+const env = require("./helpers/env");
+const disconnectServer = require("./helpers/disconnect-server");
+const apiRouter = require("./routes/api");
+const { connectDB, disconnectDB } = require("./helpers/db");
+
+const app = express();
+
+connectDB();
+
+app.use(cors({credentials: true, origin: true, }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use("/api", apiRouter);
+
+const server = app.listen(env.PORT, () => {
+  console.log(`Server is running on port http://localhost:${env.PORT}`);
+});
+
+process.on("SIGINT", disconnectServer.bind(null, server, disconnectDB));
+process.on("SIGTERM", disconnectServer.bind(null, server, disconnectDB));
+
+
+
+===== File: ./models/user.js =====
+const mongoose = require("mongoose");
+
+const userSchema = new mongoose.Schema(
+  {
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    verificationCode: { type: String },
+    verificationCodeExpiry: { type: Date },
+    passwordResetCode: { type: String },
+    passwordResetCodeExpiry: { type: Date },
+    isVerified: { type: Boolean, default: false },
+  },
+  { timestamps: true },
+);
+
+module.exports = mongoose.model("User", userSchema);
+
+
+
+===== File: ./models/template.js =====
+const mongoose = require("mongoose");
+
+const TemplateSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    previewImageUrl: {
+      type: String,
+      required: true,
+    },
+    templateFileUrl: {
+      type: String,
+      required: true,
+    },
+  },
+  { timestamps: true },
+);
+
+module.exports = mongoose.model("Template", TemplateSchema);
+
+
+===== File: ./helpers/env.js =====
+const dotenv = require("dotenv");
+const requiredVars = require("../constants/required-env-vars");
+const validateEnvVars = require("./validation-env-vars");
+
+dotenv.config({ quiet: true });
+
+module.exports = validateEnvVars(requiredVars);
+
+
+
+===== File: ./helpers/validation-env-vars.js =====
+function validateEnvVars(requiredVars) {
+  const missingVars = [];
+  const env = {};
+  for (const varName of requiredVars) {
+    if (!process.env[varName]) {
+      missingVars.push(varName);
+    }
+    env[varName] = process.env[varName];
+  }
+  if (missingVars.length > 0) {
+    throw new Error(`Missing environment variables: ${missingVars.join(", ")}`);
+  }
+  return env;
+}
+
+module.exports = validateEnvVars;
+
+
+
+===== File: ./helpers/pdf-generator.js =====
+const puppeteer = require("puppeteer");
+const renderTemplate = require("./render-template");
+
+async function generatePDF(data, templateKey) {
+  const html = renderTemplate(data, templateKey);
+
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setContent(html, { waitUntil: "networkidle0" });
+
+  const pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
+
+  await browser.close();
+  return pdfBuffer;
+}
+
+module.exports = generatePDF;
+
+
+
+===== File: ./helpers/api-response-format.js =====
+class APIResponse {
+  constructor(status, success, message, payload = null) {
+    this.status = status;
+    this.success = success;
+    this.message = message;
+    this.payload = payload;
+  }
+}
+
+module.exports = APIResponse;
+
+
+
+===== File: ./helpers/jwt.js =====
+const env = require("./env");
+const jwt = require("jsonwebtoken");
+
+function generateToken(payload) {
+  if (!payload) {
+    throw new Error("Payload is required to generate JWT");
+  }
+  return jwt.sign(payload, env.JWT_SECRET, {
+    expiresIn: "7h",
+  });
+}
+
+function verifyToken(token) {
+  if (!token) {
+    throw new Error("Token is required for verification");
+  }
+  return jwt.verify(token, env.JWT_SECRET);
+}
+
+module.exports = {
+  generateToken,
+  verifyToken,
+};
+
+
+
+===== File: ./helpers/render-template.js =====
+module.exports = function renderTemplate(data, templateKey) {
+  switch (templateKey) {
+    case "modern":
+      return `
+        <html>
+          <head>
+            <style>
+              body { font-family: sans-serif; padding: 2rem; }
+              h1 { color: #333; }
+              p { margin: 0.5rem 0; }
+              .skills span { margin-right: 0.5rem; }
+            </style>
+          </head>
+          <body>
+            <h1>${data.firstName} ${data.lastName}</h1>
+            <p>Email: ${data.email}</p>
+            <p>Phone: ${data.phone}</p>
+            <p>Summary: ${data.summary}</p>
+            <div class="skills">${data.skills.map((s) => `<span>${s}</span>`).join("")}</div>
+          </body>
+        </html>
+      `;
+    case "corporate":
+      return `
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial; padding: 3rem; background: #f3f4f6; }
+              h1 { color: #111; border-bottom: 2px solid #111; padding-bottom: 0.5rem; }
+            </style>
+          </head>
+          <body>
+            <h1>${data.firstName} ${data.lastName}</h1>
+            <p>Email: ${data.email}</p>
+            <p>Phone: ${data.phone}</p>
+            <p>Summary: ${data.summary}</p>
+            <p>Education: ${data.education}</p>
+            <div>Skills: ${data.skills.join(", ")}</div>
+          </body>
+        </html>
+      `;
+    default:
+      throw new Error("Template not found");
+  }
+};
+
+
+
+===== File: ./helpers/db.js =====
+const mongoose = require("mongoose");
+const env = require("../helpers/env");
+
+async function connectDB() {
+  try {
+    await mongoose.connect(env.MONGO_URI);
+    console.log("MongoDB connected successfully");
+  } catch (error) {
+    console.error("MongoDB connection error:", error);
+    process.exit(1);
+  }
+}
+
+async function disconnectDB() {
+  try {
+    await mongoose.disconnect();
+    console.log("MongoDB disconnected");
+  } catch (error) {
+    console.error("MongoDB disconnection error:", error);
+    process.exit(1);
+  }
+}
+
+module.exports = { connectDB, disconnectDB };
+
+
+
+===== File: ./helpers/disconnect-server.js =====
+module.exports = function disconnectServer(server, disconnectDB) {
+  return new Promise((resolve) => {
+    server.close(() => {
+      console.log('Server closed');
+      disconnectDB();
+      resolve();
+    });
+  });
+};
+
+
+===== File: ./service/user.js =====
+const emailAPI = require("../lib/email-api");
+const User = require("../models/user");
+const Errors = require("../errors/");
+const bcrypt = require("bcrypt");
+const { generateToken } = require("../helpers/jwt");
+
+class UserService {
+  static verificationCode() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+  async handleLogin(data) {
+    try {
+      const { email, password } = data;
+      const found = await User.findOne({ email });
+      if (!found) {
+        throw new Errors.NotFoundException("User not found");
+      }
+      const itsOk = await bcrypt.compare(password, found.password);
+      if (!itsOk) {
+        throw new Errors.BadRequestException("Invalid credentials");
+      }
+      return generateToken({ id: found._id });
+    } catch (err) {
+      throw Errors.handleServiceError(err);
+    }
+  }
+  async handleSignup(data) {
+    try {
+      const { email, password } = data;
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        throw new Errors.ConflictException("Email already taken");
+      }
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const newUser = await User.create({
+        email: email,
+        password: hashedPassword,
+      });
+      const code = UserService.verificationCode();
+      newUser.verificationCode = code;
+      newUser.verificationCodeExpiry = Date.now() + 15 * 60 * 1000; // 15 minutes
+      await newUser.save();
+      await emailAPI.sendVerificationEmail(newUser.email, code);
+      return true;
+    } catch (err) {
+      console.error("Error in handleSignup:", err);
+      throw Errors.handleServiceError(err);
+    }
+  }
+  async handleVerifyEmail(data) {
+    try {
+      const { email, code } = data;
+      const user = await User.findOne({ email });
+      if (!user) {
+        throw new Errors.NotFoundException("User not found");
+      }
+      if (user.isVerified) {
+        throw new Errors.BadRequestException("Email already verified");
+      }
+      const now = Date.now();
+      if (user.verificationCodeExpiry < now) {
+        throw new Errors.BadRequestException("Verification code has expired");
+      }
+      if (code !== user.verificationCode) {
+        throw new Errors.BadRequestException("Invalid verification code");
+      }
+      user.isVerified = true;
+      await user.save();
+      return generateToken({ id: user._id });
+    } catch (err) {
+      throw Errors.handleServiceError(err);
+    }
+  }
+  async handleForgotPassword(data) {
+    try {
+      const { email } = data;
+      const user = await User.findOne({ email });
+      if (!user) {
+        throw new Errors.NotFoundException("User not found");
+      }
+      if (!user.isVerified) {
+        throw new Errors.BadRequestException("Email not verified");
+      }
+      const code = UserService.verificationCode();
+      user.passwordResetCode = code;
+      user.passwordResetCodeExpiry = Date.now() + 15 * 60 * 1000;
+      await user.save();
+      await emailAPI.sendPasswordResetEmail(user.email, code);
+      return true;
+    } catch (err) {
+      throw Errors.handleServiceError(err);
+    }
+  }
+  async handleResetPassword(data) {
+    try {
+      const { email, code, newPassword } = data;
+      const user = await User.findOne({ email });
+      if (!user) {
+        throw new Errors.NotFoundException("User not found");
+      }
+      const now = Date.now();
+      if (user.passwordResetCodeExpiry < now) {
+        throw new Errors.BadRequestException("Password reset code has expired");
+      }
+      if (code !== user.passwordResetCode) {
+        throw new Errors.BadRequestException("Invalid password reset code");
+      }
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      user.password = hashedPassword;
+      user.passwordResetCode = null;
+      user.passwordResetCodeExpiry = null;
+      await user.save();
+      return generateToken({ id: user._id });
+    } catch (err) {
+      throw Errors.handleServiceError(err);
+    }
+  }
+  async handleResendVerificationCode(data) {
+    try {
+      const { email } = data;
+      const user = await User.findOne({ email });
+      if (!user) {
+        throw new Errors.NotFoundException("User not found");
+      }
+      if (user.isVerified) {
+        throw new Errors.BadRequestException("Email already verified");
+      }
+      const code = UserService.verificationCode();
+      user.verificationCode = code;
+      user.verificationCodeExpiry = Date.now() + 15 * 60 * 1000;
+      await user.save();
+      await emailAPI.sendVerificationEmail(user.email, code);
+      return true;
+    } catch (err) {
+      throw Errors.handleServiceError(err);
+    }
+  }
+}
+
+module.exports = new UserService();
+
+
+
+===== File: ./service/template.js =====
+const Error = require("../errors/");
+const Template = require("../models/template");
+
+class TemplateService {
+  async handleGetTemplates() {
+    try {
+      const templates = await Template.find({});
+      return templates;
+    } catch (err) {
+      throw Error.handleServiceError(err);
+    }
+  }
+}
+
+module.exports = new TemplateService();
+
+
+
+===== File: ./service/cv.js =====
+const generatePDF = require("../helpers/pdf-generator");
+
+class CVService {
+  async handleGenerateCV(cvData) {
+    const { data, template } = cvData;
+    const pdfBuffer = await generatePDF(data, template);
+    return pdfBuffer;
+  }
+}
+
+module.exports = new CVService();
+
+
+
+===== File: ./lib/email-api.js =====
+const nodemailer = require("nodemailer");
+const env = require("../helpers/env.js");
+
+class EmailAPI {
+  static transporter = nodemailer.createTransport({
+    host: "smtp-relay.brevo.com", // կամ SMTP պրովայդեր քո ընտրությամբ
+    port: 587,
+    secure: false,
+    auth: {
+      user: env.APP_EMAIL,
+      pass: env.APP_PASSWORD,
+    },
+  });
+
+  // Send verification email (registration)
+  async sendVerificationEmail(email, code) {
+    const mailOptions = {
+      from: `artgrigoryan771@gmail.com`,
+      to: email,
+      subject: "Բարև Bardiner CV-Maker-ից 🚀 Վավերացրեք ձեր էլ․ հասցեն",
+      text: `Շնորհակալություն, որ գրանցվել եք Bardiner CV-Maker-ում: Ձեր verification code-ը՝ ${code}`,
+      html: `
+      <div style="font-family: Arial, sans-serif; text-align: center; padding: 30px; background-color: #f9f9f9;">
+        <h1 style="color: #4a90e2; margin-bottom: 10px;">Bardiner CV-Maker</h1>
+        <p style="font-size: 16px; color: #333;">
+          Շնորհակալություն, որ գրանցվել եք: Մուտքագրեք այս կոդը verification համար՝
+        </p>
+        <div style="
+          display: inline-block;
+          padding: 12px 25px;
+          font-size: 18px;
+          font-weight: bold;
+          color: white;
+          background-color: #4a90e2;
+          border-radius: 6px;
+          margin: 20px 0;
+        ">
+          ${code}
+        </div>
+        <p style="font-size: 12px; color: #888;">
+          Եթե դուք չեք ստեղծել այս հաշիվը, պարզապես անտեսեք այս նամակը:
+        </p>
+      </div>
+      `,
+    };
+
+    return this.send(mailOptions);
+  }
+
+  // Send password reset email
+  async sendPasswordResetEmail(email, code) {
+    const mailOptions = {
+      from: `artgrigoryan771@gmail.com`,
+      to: email,
+      subject: "Bardiner CV-Maker — Reset Password",
+      text: `Ձեր reset code-ը՝ ${code} (վավեր է 15 րոպե)`,
+      html: `
+      <div style="font-family: Arial, sans-serif; text-align: center; padding: 30px; background-color: #f9f9f9;">
+        <h1 style="color: #4a90e2; margin-bottom: 10px;">Bardiner CV-Maker</h1>
+        <p style="font-size: 16px; color: #333;">
+          Ձեր գաղտնաբառը վերականգնելու համար օգտագործեք այս կոդը՝
+        </p>
+        <div style="
+          display: inline-block;
+          padding: 15px 30px;
+          font-size: 22px;
+          font-weight: bold;
+          background-color: #4a90e2;
+          color: #fff;
+          border-radius: 8px;
+          margin: 20px 0;
+        ">
+          ${code}
+        </div>
+        <p style="font-size: 12px; color: #888;">
+          Կոդը վավեր է միայն 15 րոպե:
+        </p>
+      </div>
+      `,
+    };
+
+    return this.send(mailOptions);
+  }
+
+  // Generic send method
+  async send(mailOptions) {
+    try {
+      const info = await EmailAPI.transporter.sendMail(mailOptions);
+      return info;
+    } catch (err) {
+      console.error("Email send error:", err);
+      return null;
+    }
+  }
+}
+
+module.exports = new EmailAPI();
+
+
+
+===== File: ./validator/template.js =====
+class TemplateValidator {
+  static validateGetTemplates(req, res, next) {
+    next();
+  }
+}
+
+module.exports = TemplateValidator;
+
+
+
+===== File: ./validator/auth.js =====
+const statusCodes = require("../constants/status-codes");
+const APIResponse = require("../helpers/api-response-format");
+
+class AuthValidator {
+  static isEmailValid(email) {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  }
+  constructor() {
+    throw new Error("This class` AuthValidator cannot be instantiated");
+  }
+  static validateLogin(req, res, next) {
+    const data = req.body;
+    const errors = [];
+
+    if (!data.email || !AuthValidator.isEmailValid(data.email)) {
+      errors.push("Invalid or missing email.");
+    }
+    if (!data.password) {
+      errors.push("Invalid password.");
+    }
+
+    if (errors.length > 0) {
+      return res.status(statusCodes.BAD_REQUEST).json(
+        new APIResponse(statusCodes.BAD_REQUEST, false, "Validation errors", {
+          errors,
+        }),
+      );
+    }
+    req.body = {
+      email: data.email.trim(),
+      password: data.password,
+    };
+    next();
+  }
+  static validateSignup(req, res, next) {
+    const data = req.body;
+    const errors = [];
+
+    if (!data.email || !AuthValidator.isEmailValid(data.email)) {
+      errors.push("Invalid or missing email.");
+    }
+    if (!data.password || data.password.length < 6) {
+      errors.push("Invalid password.");
+    }
+    if (errors.length > 0) {
+      return res.status(statusCodes.BAD_REQUEST).json(
+        new APIResponse(statusCodes.BAD_REQUEST, false, "Validation errors", {
+          errors,
+        }),
+      );
+    }
+    req.body = {
+      email: data.email.trim(),
+      password: data.password,
+    };
+    next();
+  }
+  static validateVerifyEmail(req, res, next) {
+    const data = req.body;
+    const errors = [];
+
+    if (!data.email || !AuthValidator.isEmailValid(data.email)) {
+      errors.push("Invalid or missing email.");
+    }
+    if (!data.code) {
+      errors.push("Invalid or missing code.");
+    }
+
+    if (errors.length > 0) {
+      return res.status(statusCodes.BAD_REQUEST).json(
+        new APIResponse(statusCodes.BAD_REQUEST, false, "Validation errors", {
+          errors,
+        }),
+      );
+    }
+    req.body = {
+      email: data.email.trim(),
+      code: data.code,
+    };
+    next();
+  }
+  static validateForgotPassword(req, res, next) {
+    const data = req.body;
+    const errors = [];
+
+    if (!data.email || !AuthValidator.isEmailValid(data.email)) {
+      errors.push("Invalid or missing email.");
+    }
+
+    if (errors.length > 0) {
+      return res.status(statusCodes.BAD_REQUEST).json(
+        new APIResponse(statusCodes.BAD_REQUEST, false, "Validation errors", {
+          errors,
+        }),
+      );
+    }
+    req.body = {
+      email: data.email.trim(),
+    };
+    next();
+  }
+  static validateResetPassword(req, res, next) {
+    const data = req.body;
+    const errors = [];
+
+    if (!data.email || !AuthValidator.isEmailValid(data.email)) {
+      errors.push("Invalid or missing email.");
+    }
+    if (!data.code) {
+      errors.push("Invalid or missing code.");
+    }
+    if (!data.newPassword || data.newPassword.length < 6) {
+      errors.push("Invalid new password.");
+    }
+
+    if (errors.length > 0) {
+      return res.status(statusCodes.BAD_REQUEST).json(
+        new APIResponse(statusCodes.BAD_REQUEST, false, "Validation errors", {
+          errors,
+        }),
+      );
+    }
+    req.body = {
+      email: data.email.trim(),
+      code: data.code,
+      newPassword: data.newPassword,
+    };
+    next();
+  }
+  static validateResendVerification(req, res, next) {
+    const data = req.body;
+    const errors = [];
+
+    if (!data.email || !AuthValidator.isEmailValid(data.email)) {
+      errors.push("Invalid or missing email.");
+    }
+
+    if (errors.length > 0) {
+      return res.status(statusCodes.BAD_REQUEST).json(
+        new APIResponse(statusCodes.BAD_REQUEST, false, "Validation errors", {
+          errors,
+        }),
+      );
+    }
+    req.body = {
+      email: data.email.trim(),
+    };
+    next();
+  }
+}
+
+module.exports = AuthValidator;
+
+
+
+===== File: ./constants/required-env-vars.js =====
+module.exports = [
+  "PORT",
+  "MONGO_URI",
+  "JWT_SECRET",
+  "JWT_REFRESH_SECRET",
+  "APP_EMAIL",
+  "APP_PASSWORD"
+];
+
+
+===== File: ./constants/status-codes.js =====
+module.exports = Object.freeze({
+  SUCCESS: 200,
+  CREATED: 201,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  INTERNAL_SERVER_ERROR: 500,
+});
+
+
+
