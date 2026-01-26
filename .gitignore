@@ -1,0 +1,11 @@
+# Ignore all node_modules folders
+node_modules/
+**/node_modules/
+
+# Ignore all .env files anywhere in the repo
+.env
+**/.env
+
+# Optional: ignore OS files
+.DS_Store
+Thumbs.db
