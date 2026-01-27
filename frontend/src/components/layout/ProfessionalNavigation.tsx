@@ -68,12 +68,19 @@ export const ProfessionalNavigation: React.FC = () => {
       description: 'Overview and statistics'
     },
     {
+      id: 'canvas',
+      label: 'Canvas Builder',
+      icon: ProfessionalIcons.EditIcon,
+      path: '/canvas',
+      description: 'Interactive canvas CV builder',
+      badge: 'New'
+    },
+    {
       id: 'editor',
       label: 'CV Editor',
       icon: ProfessionalIcons.EditorIcon,
       path: '/editor',
-      description: 'Create and edit your CV',
-      badge: 'New'
+      description: 'Create and edit your CV'
     },
     {
       id: 'templates',

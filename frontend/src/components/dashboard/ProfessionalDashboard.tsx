@@ -51,12 +51,20 @@ export const ProfessionalDashboard: React.FC = () => {
   const quickActions: QuickAction[] = [
     {
       id: 'create-cv',
+      title: 'Canvas Builder',
+      description: 'Interactive canvas CV builder with drag & drop',
+      icon: ProfessionalIcons.EditIcon,
+      color: 'bg-gradient-to-br from-blue-500 to-purple-600',
+      link: '/canvas',
+      badge: 'New'
+    },
+    {
+      id: 'create-cv-simple',
       title: 'Create New CV',
       description: 'Start building your professional CV',
       icon: ProfessionalIcons.AddIcon,
       color: 'bg-gradient-to-br from-green-500 to-emerald-600',
-      link: '/editor',
-      badge: 'New'
+      link: '/editor'
     },
     {
       id: 'upload-cv',

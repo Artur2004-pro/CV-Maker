@@ -7,6 +7,8 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import CVEditorPage from './pages/editor/CVEditorPage';
+import CanvasCVEditorPage from './pages/canvas/CanvasCVEditorPage';
+import CanvasTemplatePage from './pages/canvas/CanvasTemplatePage';
 import TemplatesPage from './pages/templates/TemplatesPage';
 import TemplateCreatorPage from './pages/template-creator/TemplateCreatorPage';
 import ProfessionalAnalytics from './components/dashboard/ProfessionalAnalytics';
@@ -116,6 +118,20 @@ export const AppRouter: React.FC = () => {
         element={
           <ProtectedRoute>
             <TemplateCreatorPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/canvas"
+        element={<CanvasTemplatePage />}
+      />
+
+      <Route
+        path="/editor/:id?"
+        element={
+          <ProtectedRoute>
+            <CanvasCVEditorPage />
           </ProtectedRoute>
         }
       />

@@ -141,6 +141,7 @@ import {
   Sparkles,
   Flame,
   Zap,
+  Minus,
   
   // Arrows & Navigation
   ArrowUpRight,
@@ -540,6 +541,23 @@ export const ProfessionalIcons = {
   ),
   GemIcon: (props: IconProps) => (
     <AppIcon icon={Gem} {...props} className={`text-purple-500 ${props.className || ''}`} />
+  ),
+  
+  // Additional Icons for Canvas
+  SquareIcon: (props: IconProps) => (
+    <AppIcon icon={Square} {...props} className={`text-gray-600 ${props.className || ''}`} />
+  ),
+  CircleIcon: (props: IconProps) => (
+    <AppIcon icon={Circle} {...props} className={`text-gray-600 ${props.className || ''}`} />
+  ),
+  MinusIcon: (props: IconProps) => (
+    <AppIcon icon={Minus} {...props} className={`text-gray-600 ${props.className || ''}`} />
+  ),
+  CopyIcon: (props: IconProps) => (
+    <AppIcon icon={Copy} {...props} className={`text-gray-600 ${props.className || ''}`} />
+  ),
+  ChevronUpIcon: (props: IconProps) => (
+    <AppIcon icon={ChevronUp} {...props} className={`text-gray-600 ${props.className || ''}`} />
   ),
 };
 
