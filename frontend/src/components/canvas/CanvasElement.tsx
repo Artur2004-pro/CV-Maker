@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { CanvasElement } from '../../types/canvas';
+import { CanvasElement, CVFieldElement } from '../../types/canvas';
 import { useCanvas } from '../../contexts/CanvasContext';
+import { useCVCanvas } from '../../contexts/CVCanvasContext';
 import { ProfessionalIcons } from '../ui/IconSystem';
 
 interface CanvasElementComponentProps {
@@ -21,6 +22,15 @@ const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
     setDragState,
     setResizeState,
   } = useCanvas();
+
+  // Try to get CVCanvas context (may not be available in all contexts)
+  let updateCVFromElement: ((elementId: string, newContent: string) => void) | null = null;
+  try {
+    const cvCanvas = useCVCanvas();
+    updateCVFromElement = cvCanvas.updateCVFromElement;
+  } catch (e) {
+    // CVCanvasContext not available, that's okay
+  }
 
   const elementRef = useRef<HTMLDivElement>(null);
   const resizeHandlesRef = useRef<HTMLDivElement>(null);
@@ -91,6 +101,43 @@ const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
     };
 
     switch (element.type) {
+      case 'cv-field':
+        const cvField = element as CVFieldElement;
+        return (
+          <div
+            style={{
+              ...baseStyle,
+              whiteSpace: cvField.multiline ? 'pre-wrap' : 'nowrap',
+              overflow: cvField.multiline ? 'auto' : 'hidden',
+            }}
+            contentEditable={!element.locked}
+            suppressContentEditableWarning
+            onBlur={(e) => {
+              const newContent = e.currentTarget.textContent || '';
+              
+              // Update canvas element
+              dispatch({
+                type: 'UPDATE_ELEMENT',
+                id: element.id,
+                updates: { content: newContent },
+              });
+
+              // Update CVData if CVCanvas context is available
+              if (updateCVFromElement) {
+                updateCVFromElement(element.id, newContent);
+              }
+            }}
+            onInput={(e) => {
+              // Optional: real-time update (can be disabled for performance)
+              // For now, we only update on blur
+            }}
+            data-cv-binding={JSON.stringify(cvField.cvBinding)}
+            title={`CV Field: ${cvField.cvBinding.fieldType}.${cvField.cvBinding.fieldKey}`}
+          >
+            {cvField.content || cvField.placeholder || 'Click to edit CV field'}
+          </div>
+        );
+
       case 'text':
         return (
           <div

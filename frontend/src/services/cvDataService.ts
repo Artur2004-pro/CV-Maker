@@ -7,7 +7,7 @@ class CVDataService {
   private readonly BACKUP_KEY = 'cv_maker_cv_backup';
 
   // Save CV data to localStorage and backend
-  async saveCVData(cvData: CVData): Promise<boolean> {
+  async saveCVData(cvData: CVData, templateId?: string, cvId?: string, name?: string): Promise<{ success: boolean; id?: string }> {
     try {
       // Save to localStorage first
       this.saveToLocalStorage(cvData);
@@ -16,19 +16,60 @@ class CVDataService {
       this.createBackup(cvData);
       
       // Save to backend
-      const response = await apiClient.post('/cv/save', cvData);
+      const payload: any = {
+        cvData,
+      };
       
-      if (response.success) {
+      if (templateId) {
+        payload.templateId = templateId;
+      }
+      
+      if (cvId) {
+        payload.id = cvId;
+      }
+      
+      if (name) {
+        payload.name = name;
+      }
+      
+      const response = await apiClient.post('/cv/save', payload);
+      
+      if (response.success && response.data) {
         // Clear draft after successful save
         localStorage.removeItem(this.DRAFT_KEY);
-        return true;
+        return {
+          success: true,
+          id: response.data.id,
+        };
       } else {
         throw new Error(response.error || 'Failed to save CV data');
       }
     } catch (error) {
       console.error('Error saving CV data:', error);
       // Keep in localStorage as fallback
-      return false;
+      return {
+        success: false,
+      };
+    }
+  }
+
+  // Load CV data by ID from backend
+  async getCVDataById(cvId: string): Promise<{ cvData: CVData; templateId?: string } | null> {
+    try {
+      const response = await apiClient.get(`/cv/${cvId}`);
+      
+      if (response.success && response.data && response.data.cvData) {
+        const cvData = response.data.cvData as CVData;
+        const templateId = response.data.templateId;
+        // Save to localStorage as cache
+        this.saveToLocalStorage(cvData);
+        return { cvData, templateId };
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error loading CV data by ID:', error);
+      return null;
     }
   }
 

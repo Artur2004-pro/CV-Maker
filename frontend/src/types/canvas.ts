@@ -60,8 +60,24 @@ export interface ShapeElement extends BaseElement {
   strokeWidth?: number;
 }
 
-export type ElementType = 'text' | 'heading' | 'section' | 'icon' | 'shape';
-export type CanvasElement = TextElement | HeadingElement | SectionElement | IconElement | ShapeElement;
+// CV Field binding metadata
+export interface CVBinding {
+  fieldType: 'personal-info' | 'experience' | 'education' | 'skills' | 'summary';
+  fieldKey: string; // e.g., 'fullName', 'email', 'summary', 'experience.0.company'
+  index?: number; // For array fields like experience[0]
+}
+
+// CV Field element - binds to CVData
+export interface CVFieldElement extends BaseElement {
+  type: 'cv-field';
+  content: string; // Resolved content from CVData
+  placeholder?: string;
+  multiline?: boolean;
+  cvBinding: CVBinding; // Metadata for CVData binding
+}
+
+export type ElementType = 'text' | 'heading' | 'section' | 'icon' | 'shape' | 'cv-field';
+export type CanvasElement = TextElement | HeadingElement | SectionElement | IconElement | ShapeElement | CVFieldElement;
 
 export interface CanvasState {
   elements: CanvasElement[];
@@ -115,7 +131,7 @@ export interface ResizeState {
 }
 
 export interface CanvasToolbar {
-  tool: 'select' | 'text' | 'heading' | 'icon' | 'shape' | 'rectangle' | 'circle' | 'line';
+  tool: 'select' | 'text' | 'heading' | 'icon' | 'shape' | 'rectangle' | 'circle' | 'line' | 'cv-field';
   isActive: boolean;
 }
 

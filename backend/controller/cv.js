@@ -36,6 +36,96 @@ class CVController {
         .json(new APIResponse(statusCode, false, err.message));
     }
   }
+
+  async saveCV(req, res) {
+    try {
+      const userId = req.user.id;
+      const result = await CVController.service.handleSaveCV(userId, req.body);
+      return res
+        .status(statusCodes.SUCCESS)
+        .json(
+          new APIResponse(
+            statusCodes.SUCCESS,
+            true,
+            "CV saved successfully",
+            result,
+          ),
+        );
+    } catch (err) {
+      const statusCode = err.statusCode || statusCodes.BAD_REQUEST;
+      return res
+        .status(statusCode)
+        .json(new APIResponse(statusCode, false, err.message));
+    }
+  }
+
+  async getCV(req, res) {
+    try {
+      const userId = req.user.id;
+      const { id } = req.params;
+      const result = await CVController.service.handleGetCV(userId, id);
+      return res
+        .status(statusCodes.SUCCESS)
+        .json(
+          new APIResponse(
+            statusCodes.SUCCESS,
+            true,
+            "CV retrieved successfully",
+            result,
+          ),
+        );
+    } catch (err) {
+      const statusCode = err.statusCode || statusCodes.NOT_FOUND;
+      return res
+        .status(statusCode)
+        .json(new APIResponse(statusCode, false, err.message));
+    }
+  }
+
+  async getUserCVs(req, res) {
+    try {
+      const userId = req.user.id;
+      const result = await CVController.service.handleGetUserCVs(userId);
+      return res
+        .status(statusCodes.SUCCESS)
+        .json(
+          new APIResponse(
+            statusCodes.SUCCESS,
+            true,
+            "CVs retrieved successfully",
+            result,
+          ),
+        );
+    } catch (err) {
+      const statusCode = err.statusCode || statusCodes.BAD_REQUEST;
+      return res
+        .status(statusCode)
+        .json(new APIResponse(statusCode, false, err.message));
+    }
+  }
+
+  async deleteCV(req, res) {
+    try {
+      const userId = req.user.id;
+      const { id } = req.params;
+      const result = await CVController.service.handleDeleteCV(userId, id);
+      return res
+        .status(statusCodes.SUCCESS)
+        .json(
+          new APIResponse(
+            statusCodes.SUCCESS,
+            true,
+            "CV deleted successfully",
+            result,
+          ),
+        );
+    } catch (err) {
+      const statusCode = err.statusCode || statusCodes.NOT_FOUND;
+      return res
+        .status(statusCode)
+        .json(new APIResponse(statusCode, false, err.message));
+    }
+  }
 }
 
 module.exports = new CVController();
