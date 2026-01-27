@@ -96,34 +96,33 @@ export const RegisterPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
       {/* Subtle background pattern */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%234F46E5' fill-opacity='0.05'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E")`
-        }} />
-      </div>
+      <div className="absolute inset-0 bg-pattern opacity-40"></div>
+      
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-accent-light/20 via-transparent to-transparent"></div>
 
-      <div className="relative z-10 w-full max-w-md">
-        <ProCard variant="elevated" className="p-8 shadow-2xl border-0">
+      <div className="relative z-10 w-full max-w-md animate-fade-in-up">
+        <ProCard variant="elevated" className="p-10 shadow-premium-lg">
           {/* Logo/Brand */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl mb-4 shadow-lg">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-accent rounded-2xl mb-6 shadow-soft-lg">
               <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
                 <path fillRule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H6a2 2 0 100 4h2a2 2 0 100-4h2a1 1 0 100-2 2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2H6z" clipRule="evenodd"/>
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
-            <p className="text-gray-600">Join CV Maker and build your professional resume</p>
+            <h1 className="text-4xl font-bold text-text-primary mb-3 tracking-tight">Create Account</h1>
+            <p className="text-text-secondary text-base">Join CV Maker and build your professional resume</p>
           </div>
 
           {/* Register Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <ProInput
               name="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder="name@example.com"
               label="Email Address"
               value={formData.email}
               onChange={handleChange}
@@ -161,19 +160,19 @@ export const RegisterPage: React.FC = () => {
             />
 
             {/* Terms and conditions */}
-            <div className="flex items-start space-x-3">
+            <div className="flex items-start gap-3 pt-1">
               <input
                 type="checkbox"
-                className="mt-1 w-4 h-4 rounded-lg border-gray-300 bg-white text-blue-600 focus:ring-blue-500 focus:ring-2"
+                className="mt-0.5 w-4 h-4 rounded border-border text-accent focus:ring-accent/20 focus:ring-2 transition-colors cursor-pointer"
                 required
               />
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-text-secondary leading-relaxed">
                 I agree to the{' '}
-                <Link to="/terms" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
+                <Link to="/terms" className="text-accent hover:text-accent-hover font-medium transition-colors">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link to="/privacy" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
+                <Link to="/privacy" className="text-accent hover:text-accent-hover font-medium transition-colors">
                   Privacy Policy
                 </Link>
               </span>
@@ -186,20 +185,20 @@ export const RegisterPage: React.FC = () => {
               fullWidth
               size="lg"
               variant="primary"
-              className="py-3 shadow-lg hover:shadow-xl"
+              className="mt-6"
             >
               {isLoading ? 'Creating account...' : 'Create Account'}
-              {!isLoading && <ArrowRight className="w-4 h-4 ml-2" />}
+              {!isLoading && <ArrowRight className="w-4 h-4" />}
             </ProButton>
           </form>
 
           {/* Sign in link */}
-          <div className="mt-8 text-center">
-            <p className="text-gray-600 text-sm">
+          <div className="mt-8 text-center pt-6 border-t border-border">
+            <p className="text-text-secondary text-sm">
               Already have an account?{' '}
               <Link
                 to="/login"
-                className="text-blue-600 font-medium hover:text-blue-700 transition-colors"
+                className="text-accent font-medium hover:text-accent-hover transition-colors"
               >
                 Sign in
               </Link>
@@ -208,7 +207,7 @@ export const RegisterPage: React.FC = () => {
         </ProCard>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-gray-500 text-sm">
+        <div className="mt-8 text-center text-text-tertiary text-sm">
           <p>&copy; 2024 CV Maker. All rights reserved.</p>
         </div>
       </div>

@@ -175,25 +175,25 @@ export const ProfessionalNavigation: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Desktop Sidebar */}
       <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
-        <div className="flex flex-col flex-grow bg-white border-r border-gray-200 pt-5 pb-4 overflow-y-auto">
+        <div className="flex flex-col flex-grow bg-surface border-r border-border pt-6 pb-4 overflow-y-auto">
           {/* Logo */}
-          <div className="flex items-center flex-shrink-0 px-4 mb-8">
+          <div className="flex items-center flex-shrink-0 px-5 mb-8">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center shadow-soft">
                 <ProfessionalIcons.HomeIcon size="md" color="white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">CV Maker</h1>
-                <p className="text-xs text-gray-500">Professional</p>
+                <h1 className="text-lg font-semibold text-text-primary tracking-tight">CV Maker</h1>
+                <p className="text-xs text-text-tertiary">Professional</p>
               </div>
             </div>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-2 space-y-1">
+          <nav className="flex-1 px-3 space-y-1">
             {navigationItems.map((item) => {
               const isActive = location.pathname === item.path || 
                            (item.path !== '/dashboard' && location.pathname.startsWith(item.path));
@@ -202,24 +202,24 @@ export const ProfessionalNavigation: React.FC = () => {
                 <Link
                   key={item.id}
                   to={item.path}
-                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                  className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${
                     isActive
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-accent text-white shadow-soft'
+                      : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'
                   }`}
                 >
                   <item.icon
                     size="md"
                     className={`${
-                      isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'
+                      isActive ? 'text-white' : 'text-text-tertiary group-hover:text-text-primary'
                     }`}
                   />
                   <span className="ml-3 flex-1">{item.label}</span>
                   {item.badge && (
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                    <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
                       isActive
                         ? 'bg-white/20 text-white'
-                        : 'bg-blue-100 text-blue-800'
+                        : 'bg-accent-light text-accent'
                     }`}>
                       {item.badge}
                     </span>
@@ -230,66 +230,66 @@ export const ProfessionalNavigation: React.FC = () => {
           </nav>
 
           {/* User Profile */}
-          <div className="flex-shrink-0 px-4 pt-4 border-t border-gray-200">
+          <div className="flex-shrink-0 px-4 pt-4 border-t border-border">
             <div className="flex items-center space-x-3">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">
+                <div className="w-10 h-10 bg-gradient-to-br from-accent to-purple-600 rounded-full flex items-center justify-center shadow-soft ring-2 ring-white">
+                  <span className="text-white font-semibold text-sm">
                     {user?.email?.charAt(0).toUpperCase()}
                   </span>
                 </div>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
+                <p className="text-sm font-medium text-text-primary truncate">
                   {user?.email?.split('@')[0]}
                 </p>
-                <p className="text-xs text-gray-500">Professional Plan</p>
+                <p className="text-xs text-text-tertiary">Professional Plan</p>
               </div>
               <button
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                className="profile-trigger p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                className="profile-trigger p-1 text-text-tertiary hover:text-text-primary transition-colors rounded-lg hover:bg-surface-hover"
               >
                 <ProfessionalIcons.ChevronDownIcon
                   size="sm"
-                  className={`transform transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`}
+                  className={`transform transition-transform duration-200 ${isProfileMenuOpen ? 'rotate-180' : ''}`}
                 />
               </button>
             </div>
 
             {/* Profile Dropdown */}
             {isProfileMenuOpen && (
-              <div className="profile-menu absolute bottom-16 left-4 right-4 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 z-50">
-                <div className="p-4 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900">{user?.email}</p>
-                  <p className="text-xs text-gray-500">Member since 2024</p>
+              <div className="profile-menu absolute bottom-16 left-4 right-4 mt-2 w-56 bg-surface rounded-xl shadow-premium-lg border border-border z-50 animate-fade-in-up">
+                <div className="p-4 border-b border-border">
+                  <p className="text-sm font-medium text-text-primary">{user?.email}</p>
+                  <p className="text-xs text-text-tertiary mt-0.5">Member since 2024</p>
                 </div>
                 <div className="py-2">
                   <Link
                     to="/profile"
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    className="flex items-center px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors"
                   >
                     <ProfessionalIcons.ProfileIcon size="sm" className="mr-3" />
                     Profile Settings
                   </Link>
                   <Link
                     to="/billing"
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    className="flex items-center px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors"
                   >
                     <ProfessionalIcons.CreditCardIcon size="sm" className="mr-3" />
                     Billing & Plans
                   </Link>
                   <Link
                     to="/help"
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    className="flex items-center px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors"
                   >
                     <ProfessionalIcons.InfoIcon size="sm" className="mr-3" />
                     Help & Support
                   </Link>
                 </div>
-                <div className="py-2 border-t border-gray-100">
+                <div className="py-2 border-t border-border">
                   <button
                     onClick={handleLogout}
-                    className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors rounded-lg"
                   >
                     <ProfessionalIcons.LogoutIcon size="sm" className="mr-3" />
                     Sign Out
@@ -304,24 +304,24 @@ export const ProfessionalNavigation: React.FC = () => {
       {/* Main Content */}
       <div className="lg:pl-64">
         {/* Top Navigation */}
-        <header className="bg-white border-b border-gray-200 shadow-sm">
+        <header className="bg-surface border-b border-border shadow-soft sticky top-0 z-40 backdrop-blur-sm bg-surface/95">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               {/* Mobile menu button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                className="lg:hidden p-2 text-text-secondary hover:text-text-primary transition-colors rounded-lg hover:bg-surface-hover"
               >
                 <ProfessionalIcons.MenuIcon size="md" />
               </button>
 
               {/* Search Bar */}
               <div className="hidden md:flex flex-1 max-w-lg mx-8">
-                <div className="relative">
+                <div className="relative w-full">
                   <input
                     type="text"
                     placeholder="Search CVs, templates, or help..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl bg-surface-hover focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all text-sm"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         const searchTerm = e.currentTarget.value;
@@ -333,35 +333,35 @@ export const ProfessionalNavigation: React.FC = () => {
                     }}
                   />
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <ProfessionalIcons.SearchIcon size="sm" />
+                    <ProfessionalIcons.SearchIcon size="sm" className="text-text-tertiary" />
                   </div>
                 </div>
               </div>
 
               {/* Right Actions */}
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
                 {/* Notifications */}
                 <div className="relative notifications-trigger">
                   <button
                     onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                    className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                    className="relative p-2 text-text-secondary hover:text-text-primary transition-colors rounded-lg hover:bg-surface-hover"
                   >
                     <ProfessionalIcons.BellIcon size="md" />
                     {unreadCount > 0 && (
-                      <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                      <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
                     )}
                   </button>
 
                   {/* Notifications Dropdown */}
                   {isNotificationsOpen && (
-                    <div className="notifications-menu absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 z-50">
-                      <div className="p-4 border-b border-gray-100">
+                    <div className="notifications-menu absolute right-0 mt-2 w-80 bg-surface rounded-xl shadow-premium-lg border border-border z-50 animate-fade-in-up">
+                      <div className="p-4 border-b border-border">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-sm font-medium text-gray-900">Notifications</h3>
+                          <h3 className="text-sm font-semibold text-text-primary">Notifications</h3>
                           {unreadCount > 0 && (
                             <button
                               onClick={markAllNotificationsAsRead}
-                              className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                              className="text-xs text-accent hover:text-accent-hover font-medium transition-colors"
                             >
                               Mark all as read
                             </button>
@@ -370,31 +370,31 @@ export const ProfessionalNavigation: React.FC = () => {
                       </div>
                       <div className="max-h-96 overflow-y-auto">
                         {notifications.length === 0 ? (
-                          <div className="p-8 text-center text-gray-500">
-                            <ProfessionalIcons.BellIcon size="lg" className="mx-auto mb-2 opacity-50" />
+                          <div className="p-8 text-center text-text-tertiary">
+                            <ProfessionalIcons.BellIcon size="lg" className="mx-auto mb-2 opacity-30" />
                             <p className="text-sm">No notifications</p>
                           </div>
                         ) : (
                           notifications.map((notification) => (
                             <div
                               key={notification.id}
-                              className={`p-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors cursor-pointer ${
-                                !notification.read ? 'bg-blue-50' : ''
+                              className={`p-4 border-b border-border last:border-b-0 hover:bg-surface-hover transition-colors cursor-pointer ${
+                                !notification.read ? 'bg-accent-light/30' : ''
                               }`}
                               onClick={() => markNotificationAsRead(notification.id)}
                             >
-                              <div className="flex items-start space-x-3">
-                                <div className={`p-1 rounded-full ${getNotificationColor(notification.type)}`}>
+                              <div className="flex items-start gap-3">
+                                <div className={`p-1.5 rounded-full ${getNotificationColor(notification.type)}`}>
                                   {getNotificationIcon(notification.type)}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-gray-900">
+                                  <p className="text-sm font-medium text-text-primary">
                                     {notification.title}
                                   </p>
-                                  <p className="text-xs text-gray-600 mt-1">
+                                  <p className="text-xs text-text-secondary mt-1">
                                     {notification.message}
                                   </p>
-                                  <p className="text-xs text-gray-400 mt-1">
+                                  <p className="text-xs text-text-tertiary mt-1.5">
                                     {notification.time}
                                   </p>
                                 </div>
@@ -403,10 +403,10 @@ export const ProfessionalNavigation: React.FC = () => {
                           ))
                         )}
                       </div>
-                      <div className="p-4 border-t border-gray-100">
+                      <div className="p-4 border-t border-border">
                         <Link
                           to="/notifications"
-                          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                          className="text-sm text-accent hover:text-accent-hover font-medium transition-colors"
                         >
                           View all notifications
                         </Link>
@@ -418,9 +418,8 @@ export const ProfessionalNavigation: React.FC = () => {
                 {/* Quick Actions */}
                 <ProButton
                   variant="primary"
-                  size="sm"
+                  size="md"
                   onClick={() => navigate('/editor')}
-                  className="shadow-lg hover:shadow-xl"
                 >
                   <ProfessionalIcons.AddIcon size="sm" />
                   <span className="ml-2">New CV</span>

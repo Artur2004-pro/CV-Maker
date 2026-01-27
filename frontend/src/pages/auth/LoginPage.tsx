@@ -63,40 +63,39 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float" style={{ animationDelay: '4s' }}></div>
-      </div>
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 bg-pattern opacity-40"></div>
+      
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-accent-light/20 via-transparent to-transparent"></div>
 
-      <div className="relative z-10 w-full max-w-md">
-        <ProCard variant="glass" className="p-8">
+      <div className="relative z-10 w-full max-w-md animate-fade-in-up">
+        <ProCard variant="elevated" className="p-10 shadow-premium-lg">
           {/* Logo/Brand */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-4">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-accent rounded-2xl mb-6 shadow-soft-lg">
               <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
                 <path fillRule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H6a2 2 0 100 4h2a2 2 0 100-4h2a1 1 0 100-2 2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2H6z" clipRule="evenodd"/>
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-            <p className="text-white/80">Sign in to your CV Maker account</p>
+            <h1 className="text-4xl font-bold text-text-primary mb-3 tracking-tight">Welcome Back</h1>
+            <p className="text-text-secondary text-base">Sign in to your CV Maker account</p>
           </div>
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <ProInput
               name="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder="name@example.com"
               label="Email Address"
               value={formData.email}
               onChange={handleChange}
               error={errors.email}
               icon={<Mail className="w-5 h-5" />}
-              variant="glass"
+              variant="default"
               required
             />
 
@@ -109,22 +108,22 @@ export const LoginPage: React.FC = () => {
               onChange={handleChange}
               error={errors.password}
               icon={<Lock className="w-5 h-5" />}
-              variant="glass"
+              variant="default"
               required
             />
 
             {/* Remember me & Forgot password */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center text-white/80 text-sm">
+            <div className="flex items-center justify-between pt-1">
+              <label className="flex items-center text-text-secondary text-sm cursor-pointer group">
                 <input
                   type="checkbox"
-                  className="w-4 h-4 rounded border-white/20 bg-white/10 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
+                  className="w-4 h-4 rounded border-border text-accent focus:ring-accent/20 focus:ring-2 transition-colors cursor-pointer"
                 />
-                <span className="ml-2">Remember me</span>
+                <span className="ml-2 group-hover:text-text-primary transition-colors">Remember me</span>
               </label>
               <Link
                 to="/forgot-password"
-                className="text-white/80 hover:text-white text-sm transition-colors"
+                className="text-sm text-accent hover:text-accent-hover font-medium transition-colors"
               >
                 Forgot password?
               </Link>
@@ -136,20 +135,21 @@ export const LoginPage: React.FC = () => {
               loading={isLoading}
               fullWidth
               size="lg"
-              className="py-3 bg-white/20 hover:bg-white/30 text-white border border-white/30"
+              variant="primary"
+              className="mt-6"
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
-              {!isLoading && <ArrowRight className="w-4 h-4 ml-2" />}
+              {!isLoading && <ArrowRight className="w-4 h-4" />}
             </ProButton>
           </form>
 
           {/* Sign up link */}
-          <div className="mt-8 text-center">
-            <p className="text-white/80 text-sm">
+          <div className="mt-8 text-center pt-6 border-t border-border">
+            <p className="text-text-secondary text-sm">
               Don't have an account?{' '}
               <Link
                 to="/register"
-                className="text-white font-medium hover:text-white/80 transition-colors"
+                className="text-accent font-medium hover:text-accent-hover transition-colors"
               >
                 Sign up for free
               </Link>
@@ -158,7 +158,7 @@ export const LoginPage: React.FC = () => {
         </ProCard>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-white/60 text-sm">
+        <div className="mt-8 text-center text-text-tertiary text-sm">
           <p>&copy; 2024 CV Maker. All rights reserved.</p>
         </div>
       </div>

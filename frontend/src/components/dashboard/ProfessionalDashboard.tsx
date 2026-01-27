@@ -154,13 +154,13 @@ export const ProfessionalDashboard: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green-50 text-green-700 border-green-200';
       case 'draft':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
       case 'published':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-accent-light text-accent border-accent/30';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-surface-hover text-text-secondary border-border';
     }
   };
 
@@ -189,86 +189,86 @@ export const ProfessionalDashboard: React.FC = () => {
     return (
       <div className="space-y-8">
         {/* Primary CV Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-2">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Create your next CV</h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <h2 className="text-3xl font-semibold text-text-primary tracking-tight mb-2">Create your next CV</h2>
+            <p className="text-base text-text-secondary">
               Start from an AI-assisted flow or design from scratch on the canvas editor.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <ProButton
               variant="primary"
-              className="flex items-center justify-center px-4 py-2"
+              size="lg"
               onClick={() => navigate('/cv/generate')}
             >
-              <ProfessionalIcons.SparkleIcon size="sm" className="mr-2" />
+              <ProfessionalIcons.SparkleIcon size="sm" />
               Generate CV
             </ProButton>
             <ProButton
               variant="outline"
-              className="flex items-center justify-center px-4 py-2"
+              size="lg"
               onClick={() => navigate('/editor')}
             >
-              <ProfessionalIcons.EditIcon size="sm" className="mr-2" />
+              <ProfessionalIcons.EditIcon size="sm" />
               Create CV from Scratch
             </ProButton>
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <ProCard variant="elevated" className="p-6 border-0 shadow-lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <ProCard variant="elevated" className="p-6 border-0 shadow-premium card-hover">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total CVs</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{stats.totalCVs}</p>
-                <p className="text-sm text-green-600 mt-2 flex items-center">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-text-secondary mb-1">Total CVs</p>
+                <p className="text-4xl font-semibold text-text-primary mb-2 tracking-tight">{stats.totalCVs}</p>
+                <p className="text-sm text-green-600 flex items-center gap-1.5">
                   <ProfessionalIcons.TrendingUpIcon size="sm" />
-                  <span className="ml-1">+2 this week</span>
+                  <span>+2 this week</span>
                 </p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <ProfessionalIcons.FileTextIcon size="lg" />
+              <div className="w-12 h-12 bg-accent-light rounded-xl flex items-center justify-center">
+                <ProfessionalIcons.FileTextIcon size="lg" className="text-accent" />
               </div>
             </div>
           </ProCard>
 
-          <ProCard variant="elevated" className="p-6 border-0 shadow-lg">
+          <ProCard variant="elevated" className="p-6 border-0 shadow-premium card-hover">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Recent Activity</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{stats.recentCVs}</p>
-                <p className="text-sm text-blue-600 mt-2">Last 7 days</p>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-text-secondary mb-1">Recent Activity</p>
+                <p className="text-4xl font-semibold text-text-primary mb-2 tracking-tight">{stats.recentCVs}</p>
+                <p className="text-sm text-accent">Last 7 days</p>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <ProfessionalIcons.ActivityIcon size="lg" />
+              <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+                <ProfessionalIcons.ActivityIcon size="lg" className="text-green-600" />
               </div>
             </div>
           </ProCard>
 
-          <ProCard variant="elevated" className="p-6 border-0 shadow-lg">
+          <ProCard variant="elevated" className="p-6 border-0 shadow-premium card-hover">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Templates Used</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{stats.templatesUsed}</p>
-                <p className="text-sm text-purple-600 mt-2">+1 new</p>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-text-secondary mb-1">Templates Used</p>
+                <p className="text-4xl font-semibold text-text-primary mb-2 tracking-tight">{stats.templatesUsed}</p>
+                <p className="text-sm text-purple-600">+1 new</p>
               </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                <ProfessionalIcons.TemplatesIcon size="lg" />
+              <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
+                <ProfessionalIcons.TemplatesIcon size="lg" className="text-purple-600" />
               </div>
             </div>
           </ProCard>
 
-          <ProCard variant="elevated" className="p-6 border-0 shadow-lg">
+          <ProCard variant="elevated" className="p-6 border-0 shadow-premium card-hover">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Completion Rate</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{stats.completionRate}%</p>
-                <p className="text-sm text-orange-600 mt-2">Great progress!</p>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-text-secondary mb-1">Completion Rate</p>
+                <p className="text-4xl font-semibold text-text-primary mb-2 tracking-tight">{stats.completionRate}%</p>
+                <p className="text-sm text-orange-600">Great progress!</p>
               </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                <ProfessionalIcons.AwardIcon size="lg" />
+              <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center">
+                <ProfessionalIcons.AwardIcon size="lg" className="text-orange-600" />
               </div>
             </div>
           </ProCard>
@@ -276,25 +276,25 @@ export const ProfessionalDashboard: React.FC = () => {
 
         {/* Quick Actions */}
         <div>
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <h3 className="text-2xl font-semibold text-text-primary mb-5 tracking-tight">Quick Actions</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {quickActions.map((action) => (
               <Link key={action.id} to={action.link}>
-                <ProCard variant="elevated" className="p-6 border-0 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`w-12 h-12 ${action.color} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                <ProCard variant="elevated" hover className="p-6 border-0 shadow-premium cursor-pointer group">
+                  <div className="flex items-center justify-between mb-5">
+                    <div className={`w-12 h-12 ${action.color} rounded-xl flex items-center justify-center shadow-soft group-hover:scale-105 transition-transform duration-200`}>
                       <action.icon size="lg" color="white" />
                     </div>
                     {action.badge && (
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                      <span className="px-2.5 py-1 bg-accent-light text-accent text-xs font-medium rounded-full">
                         {action.badge}
                       </span>
                     )}
                   </div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                  <h4 className="text-lg font-semibold text-text-primary mb-2 group-hover:text-accent transition-colors">
                     {action.title}
                   </h4>
-                  <p className="text-sm text-gray-600">{action.description}</p>
+                  <p className="text-sm text-text-secondary leading-relaxed">{action.description}</p>
                 </ProCard>
               </Link>
             ))}
@@ -303,81 +303,80 @@ export const ProfessionalDashboard: React.FC = () => {
 
         {/* Recent CVs */}
         <div>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-bold text-gray-900">Recent CVs</h3>
+          <div className="flex justify-between items-center mb-5">
+            <h3 className="text-2xl font-semibold text-text-primary tracking-tight">Recent CVs</h3>
             <ProButton 
               variant="outline" 
-              className="border-gray-300 text-gray-700"
+              size="md"
               onClick={() => navigate('/editor')}
             >
               View All
-              <ProfessionalIcons.ArrowRightIcon size="sm" className="ml-2" />
+              <ProfessionalIcons.ArrowRightIcon size="sm" />
             </ProButton>
           </div>
           
-          <ProCard variant="elevated" className="border-0 shadow-lg">
+          <ProCard variant="elevated" className="border-0 shadow-premium overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">CV Name</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Template</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Last Modified</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Status</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Completion</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Actions</th>
+                  <tr className="border-b border-border bg-surface-hover">
+                    <th className="text-left py-4 px-6 text-xs font-semibold text-text-secondary uppercase tracking-wider">CV Name</th>
+                    <th className="text-left py-4 px-6 text-xs font-semibold text-text-secondary uppercase tracking-wider">Template</th>
+                    <th className="text-left py-4 px-6 text-xs font-semibold text-text-secondary uppercase tracking-wider">Last Modified</th>
+                    <th className="text-left py-4 px-6 text-xs font-semibold text-text-secondary uppercase tracking-wider">Status</th>
+                    <th className="text-left py-4 px-6 text-xs font-semibold text-text-secondary uppercase tracking-wider">Completion</th>
+                    <th className="text-left py-4 px-6 text-xs font-semibold text-text-secondary uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-border">
                   {recentCVs.map((cv) => (
-                    <tr key={cv.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                      <td className="py-3 px-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <ProfessionalIcons.FileTextIcon size="sm" />
+                    <tr key={cv.id} className="hover:bg-surface-hover transition-colors duration-150">
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 bg-accent-light rounded-lg flex items-center justify-center">
+                            <ProfessionalIcons.FileTextIcon size="sm" className="text-accent" />
                           </div>
-                          <span className="font-medium text-gray-900">{cv.name}</span>
+                          <span className="font-medium text-text-primary">{cv.name}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-sm text-gray-600">{cv.template}</td>
-                      <td className="py-3 px-4 text-sm text-gray-600">{cv.lastModified}</td>
-                      <td className="py-3 px-4">
-                        <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(cv.status)}`}>
+                      <td className="py-4 px-6 text-sm text-text-secondary">{cv.template}</td>
+                      <td className="py-4 px-6 text-sm text-text-secondary">{cv.lastModified}</td>
+                      <td className="py-4 px-6">
+                        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(cv.status)}`}>
                           {getStatusIcon(cv.status)}
-                          <span className="ml-1">{cv.status}</span>
+                          <span className="capitalize">{cv.status}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-24 bg-gray-200 rounded-full h-2">
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 max-w-[120px] bg-surface-hover rounded-full h-2 overflow-hidden">
                             <div 
-                              className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full"
+                              className="bg-gradient-to-r from-accent to-blue-600 h-2 rounded-full transition-all duration-300"
                               style={{ width: `${cv.completion}%` }}
                             ></div>
                           </div>
-                          <span className="text-sm text-gray-600">{cv.completion}%</span>
+                          <span className="text-sm text-text-secondary font-medium min-w-[40px]">{cv.completion}%</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center space-x-2">
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-2">
                           <button 
-                            className="p-1 text-gray-600 hover:text-blue-600 transition-colors"
+                            className="p-2 text-text-tertiary hover:text-accent hover:bg-accent-light rounded-lg transition-all duration-150"
                             onClick={() => navigate(`/editor/${cv.id}`)}
                             title="Edit CV"
                           >
                             <ProfessionalIcons.EditIcon size="sm" />
                           </button>
                           <button 
-                            className="p-1 text-gray-600 hover:text-green-600 transition-colors"
+                            className="p-2 text-text-tertiary hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-150"
                             onClick={() => navigate(`/editor/${cv.id}`)}
                             title="View CV"
                           >
                             <ProfessionalIcons.ViewIcon size="sm" />
                           </button>
                           <button 
-                            className="p-1 text-gray-600 hover:text-purple-600 transition-colors"
+                            className="p-2 text-text-tertiary hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-150"
                             onClick={() => {
-                              // Simulate download
                               toast.success(`Downloading ${cv.name}...`);
                             }}
                             title="Download CV"
@@ -398,33 +397,33 @@ export const ProfessionalDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm">
+      <header className="bg-surface border-b border-border sticky top-0 z-40 backdrop-blur-sm bg-surface/95">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center shadow-soft">
                   <ProfessionalIcons.HomeIcon size="md" color="white" />
                 </div>
-                <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
+                <h1 className="text-xl font-semibold text-text-primary tracking-tight">Dashboard</h1>
               </div>
             </div>
             
             <div className="flex items-center space-x-4">
-              <button className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors">
+              <button className="relative p-2 text-text-secondary hover:text-text-primary transition-colors rounded-lg hover:bg-surface-hover">
                 <ProfessionalIcons.BellIcon size="md" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
               </button>
               
-              <div className="flex items-center space-x-3 pl-4 border-l border-gray-200">
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">{user?.email}</p>
-                  <p className="text-xs text-gray-500">Professional Plan</p>
+              <div className="flex items-center space-x-3 pl-4 border-l border-border">
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm font-medium text-text-primary">{user?.email}</p>
+                  <p className="text-xs text-text-tertiary">Professional Plan</p>
                 </div>
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">
+                <div className="w-10 h-10 bg-gradient-to-br from-accent to-purple-600 rounded-full flex items-center justify-center shadow-soft ring-2 ring-white">
+                  <span className="text-white font-semibold text-sm">
                     {user?.email?.charAt(0).toUpperCase()}
                   </span>
                 </div>
@@ -433,7 +432,7 @@ export const ProfessionalDashboard: React.FC = () => {
               <ProButton
                 variant="ghost"
                 onClick={logout}
-                className="text-gray-600 hover:text-red-600"
+                className="text-text-secondary hover:text-red-600"
               >
                 <ProfessionalIcons.LogoutIcon size="sm" />
               </ProButton>
@@ -443,21 +442,21 @@ export const ProfessionalDashboard: React.FC = () => {
       </header>
 
       {/* Tab Navigation */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-surface border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
+          <div className="flex space-x-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center space-x-2 py-4 border-b-2 transition-colors ${
+                className={`flex items-center space-x-2 py-4 px-3 border-b-2 transition-all duration-200 rounded-t-lg ${
                   activeTab === tab.id
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-accent text-accent bg-accent-light/10'
+                    : 'border-transparent text-text-secondary hover:text-text-primary hover:bg-surface-hover'
                 }`}
               >
                 <tab.icon size="sm" />
-                <span className="font-medium">{tab.label}</span>
+                <span className="font-medium text-sm">{tab.label}</span>
               </button>
             ))}
           </div>
