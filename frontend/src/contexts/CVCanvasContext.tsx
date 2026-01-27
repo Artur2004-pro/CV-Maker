@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo, ReactNode } from 'react';
 import { CanvasProvider, useCanvas } from './CanvasContext';
 import { CanvasElement, CVFieldElement } from '../types/canvas';
 import { CVData } from '../types/api';
@@ -83,9 +83,16 @@ export const CVCanvasProvider: React.FC<CVCanvasProviderProps> = ({
 
     /**
      * Update CVData when a CVFieldElement's content changes
+     * Используем useRef для хранения актуального state, чтобы избежать пересоздания функции
      */
+    const stateRef = useRef(state);
+    useEffect(() => {
+      stateRef.current = state;
+    }, [state]);
+
     const updateCVFromElement = useCallback((elementId: string, newContent: string) => {
-      const element = state.elements.find(el => el.id === elementId);
+      // Получаем актуальные элементы из ref
+      const element = stateRef.current.elements.find(el => el.id === elementId);
       
       if (!element || element.type !== 'cv-field') {
         console.warn('[CVCanvasProvider] Element not found or not a CV field:', elementId);
@@ -174,7 +181,7 @@ export const CVCanvasProvider: React.FC<CVCanvasProviderProps> = ({
 
         return updated;
       });
-    }, [state.elements, setCVData]);
+    }, [setCVData]);
 
     /**
      * Apply template to canvas, converting TemplatePreset elements to CanvasElements
@@ -267,7 +274,8 @@ export const CVCanvasProvider: React.FC<CVCanvasProviderProps> = ({
       }
     }, [setCVData, setTemplateId, templateId, applyTemplate]);
 
-    const value: CVCanvasContextType = {
+    // Мемоизируем value, чтобы избежать пересоздания контекста при каждом рендере
+    const value: CVCanvasContextType = useMemo(() => ({
       cvData,
       setCVData,
       templateId,
@@ -276,7 +284,7 @@ export const CVCanvasProvider: React.FC<CVCanvasProviderProps> = ({
       applyTemplate,
       saveCV,
       loadCV,
-    };
+    }), [cvData, setCVData, templateId, setTemplateId, updateCVFromElement, applyTemplate, saveCV, loadCV]);
 
     return (
       <CVCanvasContext.Provider value={value}>

@@ -59,9 +59,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         if (authData) {
           const user = authData.tokenData.user;
+          const token = authData.tokenData.token;
+          
+          // Set token in API client
+          apiClient.setToken(token);
+          
           setAuthState({
             user,
-            token: authData.tokenData.token,
+            token,
             isLoading: false,
             isAuthenticated: true,
             isVerified: user?.isVerified || false,
@@ -69,6 +74,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             lastActivity: authData.lastActivity,
           });
         } else {
+          // Clear token from API client if no auth data
+          apiClient.clearToken();
+          
           setAuthState({
             user: null,
             token: null,
@@ -81,6 +89,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
+        apiClient.clearToken();
+        
         setAuthState({
           user: null,
           token: null,
@@ -109,6 +119,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.error('Logout error:', error);
     } finally {
       tokenService.clearAuthData();
+      
+      // Token is already cleared in apiClient by tokenService.clearAuthData()
       
       setAuthState({
         user: null,
@@ -205,6 +217,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       
       tokenService.saveAuthData(response.data);
+      
+      // Token is already set in apiClient by tokenService.saveAuthData()
       
       setAuthState({
         user: response.data.user,

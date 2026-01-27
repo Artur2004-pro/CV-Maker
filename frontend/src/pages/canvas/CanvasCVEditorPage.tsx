@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { CVCanvasProvider, useCVCanvas } from '../../contexts/CVCanvasContext';
 import CanvasEditor from '../../components/canvas/CanvasEditor';
@@ -19,21 +19,34 @@ interface EditorLocationState {
  */
 const CanvasCVEditorContent: React.FC = () => {
   const { applyTemplate, cvData, templateId } = useCVCanvas();
-  const [templateApplied, setTemplateApplied] = useState(false);
+  const initialTemplateIdRef = useRef<string | null>(null);
+  const applyTemplateRef = useRef(applyTemplate);
+  const cvDataRef = useRef(cvData);
+
+  // Обновляем refs при изменении значений
+  useEffect(() => {
+    applyTemplateRef.current = applyTemplate;
+  }, [applyTemplate]);
 
   useEffect(() => {
-    if (!templateApplied && templateId) {
+    cvDataRef.current = cvData;
+  }, [cvData]);
+
+  useEffect(() => {
+    // Применяем шаблон только один раз при монтировании или при изменении templateId
+    if (templateId && templateId !== initialTemplateIdRef.current) {
       const template = getTemplatePreset(templateId);
       if (template) {
         console.log('[CanvasCVEditorPage] Applying template on mount:', templateId);
-        applyTemplate(template, cvData);
-        setTemplateApplied(true);
+        // Используем refs для получения актуальных значений без добавления в зависимости
+        applyTemplateRef.current(template, cvDataRef.current);
+        initialTemplateIdRef.current = templateId;
       } else {
         console.warn('[CanvasCVEditorPage] Template not found:', templateId);
         toast.error(`Template "${templateId}" not found. Using default template.`);
       }
     }
-  }, [templateId, cvData, applyTemplate, templateApplied]);
+  }, [templateId]); // Только templateId в зависимостях
 
   return <CanvasEditor />;
 };
@@ -43,19 +56,45 @@ const CanvasCVEditorPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated } = useAuth();
-  const state = (location.state || {}) as EditorLocationState;
+  
+  // Стабилизируем state из location, чтобы избежать пересоздания при каждом рендере
+  const locationStateRef = useRef<EditorLocationState | null>(null);
+  
+  // Обновляем ref только при изменении location.state
+  useEffect(() => {
+    if (location.state) {
+      locationStateRef.current = location.state as EditorLocationState;
+    }
+  }, [location.state]);
+  
+  const state = locationStateRef.current || {};
 
   const [initialCVData, setInitialCVData] = useState<CVData | undefined>(undefined);
   const [initialTemplateId, setInitialTemplateId] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
+  const dataLoadedRef = useRef<string | undefined | null>(null);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   // Load CV data if ID is provided
   useEffect(() => {
+    // Не загружаем данные, если пользователь не аутентифицирован
+    if (!isAuthenticated) {
+      return;
+    }
+
+    // Предотвращаем повторную загрузку данных для того же id
+    // Используем null как начальное значение, чтобы отличить от undefined
+    if (dataLoadedRef.current === id) {
+      return;
+    }
+
     const loadCVData = async () => {
-      if (!isAuthenticated) {
-        navigate('/login');
-        return;
-      }
 
       try {
         let cvData: CVData | undefined = state.cvData;
@@ -100,9 +139,19 @@ const CanvasCVEditorPage: React.FC = () => {
           templateId = templatePresets[0]?.id;
         }
 
+        // Проверяем, что у нас есть валидный templateId
+        if (!templateId) {
+          console.error('[CanvasCVEditorPage] No template available');
+          toast.error('No template available. Please create a template first.');
+          navigate('/dashboard');
+          return;
+        }
+
         setInitialCVData(cvData);
         setInitialTemplateId(templateId);
         setIsLoading(false);
+        // Сохраняем id (может быть undefined) для предотвращения повторной загрузки
+        dataLoadedRef.current = id;
 
         console.log('[CanvasCVEditorPage] Initialized with:', {
           cvData,
@@ -117,10 +166,10 @@ const CanvasCVEditorPage: React.FC = () => {
     };
 
     loadCVData();
-  }, [id, state, isAuthenticated, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, isAuthenticated]);
 
   if (!isAuthenticated) {
-    navigate('/login');
     return null;
   }
 

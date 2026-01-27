@@ -1,4 +1,5 @@
 import type { AuthResponse } from '../types/api';
+import { apiClient } from './apiClient';
 
 interface TokenData {
   token: string;
@@ -239,12 +240,12 @@ class TokenService {
 
   // Set token in API client
   setApiToken(token: string): void {
-    // Token is set in the apiClient instance directly
+    apiClient.setToken(token);
   }
 
   // Clear token from API client
   private clearApiToken(): void {
-    // Token is cleared in the apiClient instance directly
+    apiClient.clearToken();
   }
 
   // Get authentication status

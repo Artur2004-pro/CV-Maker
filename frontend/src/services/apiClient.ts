@@ -24,10 +24,38 @@ class ApiClient {
     
     try {
       const response = await fetch(url, finalConfig);
-      const data = await response.json();
+      
+      // Handle non-JSON responses (e.g., network errors)
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        // If response is not JSON, create error response
+        if (!response.ok) {
+          return {
+            success: false,
+            error: `HTTP error! status: ${response.status}`,
+          };
+        }
+        return {
+          success: true,
+          data: null,
+          message: 'Success',
+        };
+      }
       
       if (!response.ok) {
-        throw new Error(data.message || `HTTP error! status: ${response.status}`);
+        // Handle 401 Unauthorized errors
+        if (response.status === 401) {
+          this.clearToken();
+          // Note: tokenService.clearAuthData() will be called by useAuth hook
+          // when it detects the 401 error, to avoid circular dependency
+        }
+        
+        return {
+          success: false,
+          error: data.message || `HTTP error! status: ${response.status}`,
+        };
       }
 
       return {
@@ -36,20 +64,12 @@ class ApiClient {
         message: data.message,
       };
     } catch (error) {
-      const apiError: ApiError = {
-        message: error instanceof Error ? error.message : 'An unknown error occurred',
-        status: 500,
-      };
+      // Network errors or other exceptions
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
       
-      // Handle auth errors
-      if (apiError.status === 401) {
-        // Clear token and let the app handle redirect
-        this.clearToken();
-      }
-
       return {
         success: false,
-        error: apiError.message,
+        error: errorMessage,
       };
     }
   }

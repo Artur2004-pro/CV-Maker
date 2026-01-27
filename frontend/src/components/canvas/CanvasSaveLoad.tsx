@@ -1,8 +1,12 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useCanvas } from '../../contexts/CanvasContext';
 import { canvasStorageService } from '../../services/canvasStorageService';
-import { CVProject } from '../../types/canvas';
+import { CVProject, ImageElement, TextElement } from '../../types/canvas';
 import { ProfessionalIcons } from '../ui/IconSystem';
+import { fileUploadService } from '../../services/fileUploadService';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { pdfToImageSimple, extractPDFText, PDFTextItem } from '../../utils/pdfToImage';
 
 interface CanvasSaveLoadProps {
   projectId?: string;
@@ -16,11 +20,15 @@ const CanvasSaveLoad: React.FC<CanvasSaveLoadProps> = ({
   onLoad,
 }) => {
   const { state, dispatch } = useCanvas();
+  const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isProcessingPDF, setIsProcessingPDF] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [projectName, setProjectName] = useState('');
+  const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
 
   const handleSave = async () => {
     if (!projectName.trim()) {
@@ -98,10 +106,8 @@ const CanvasSaveLoad: React.FC<CanvasSaveLoadProps> = ({
     }
   };
 
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  // Handle JSON import
+  const handleJSONImport = useCallback((file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -110,14 +116,246 @@ const CanvasSaveLoad: React.FC<CanvasSaveLoadProps> = ({
         if (project) {
           dispatch({ type: 'LOAD_PROJECT', project });
           onLoad?.(project);
+          toast.success('Project imported successfully!');
+        } else {
+          toast.error('Failed to import project: Invalid format');
         }
       } catch (error) {
         console.error('Failed to import project:', error);
-        alert('Failed to import project');
+        toast.error('Failed to import project');
       }
     };
     reader.readAsText(file);
+  }, [dispatch, onLoad]);
+
+  // Group text items by proximity to avoid too many small elements
+  const groupTextItems = useCallback((items: PDFTextItem[], proximityThreshold: number): Array<PDFTextItem & { text: string }> => {
+    if (items.length === 0) return [];
+    
+    const groups: Array<PDFTextItem & { text: string }> = [];
+    const used = new Set<number>();
+    
+    items.forEach((item, index) => {
+      if (used.has(index)) return;
+      
+      // Find nearby items
+      const group: PDFTextItem[] = [item];
+      used.add(index);
+      
+      items.forEach((otherItem, otherIndex) => {
+        if (used.has(otherIndex)) return;
+        
+        const distance = Math.sqrt(
+          Math.pow(item.x - otherItem.x, 2) + Math.pow(item.y - otherItem.y, 2)
+        );
+        
+        // Check if items are on the same line (similar Y position)
+        const sameLine = Math.abs(item.y - otherItem.y) < item.height * 0.5;
+        
+        if (sameLine && distance < proximityThreshold) {
+          group.push(otherItem);
+          used.add(otherIndex);
+        }
+      });
+      
+      // Combine grouped items
+      const combined = group.reduce((acc, curr) => {
+        return {
+          ...acc,
+          text: acc.text + (acc.text && !acc.text.endsWith(' ') && !curr.text.startsWith(' ') ? ' ' : '') + curr.text,
+          x: Math.min(acc.x, curr.x),
+          y: Math.min(acc.y, curr.y),
+          width: Math.max(acc.x + acc.width, curr.x + curr.width) - Math.min(acc.x, curr.x),
+          height: Math.max(acc.height, curr.height),
+          fontSize: Math.max(acc.fontSize, curr.fontSize),
+        };
+      });
+      
+      groups.push(combined as PDFTextItem & { text: string });
+    });
+    
+    return groups;
+  }, []);
+
+  // Handle PDF import
+  const handlePDFImport = useCallback(async (file: File) => {
+    setIsProcessingPDF(true);
+    try {
+      toast.loading('Processing PDF file...', { id: 'pdf-processing' });
+      
+      // Convert PDF to image
+      toast.loading('Converting PDF to image...', { id: 'pdf-converting' });
+      const imageDataUrl = await pdfToImageSimple(file);
+      toast.dismiss('pdf-converting');
+      
+      // Extract text from PDF
+      toast.loading('Extracting text from PDF...', { id: 'pdf-text-extracting' });
+      const textItems = await extractPDFText(file);
+      toast.dismiss('pdf-text-extracting');
+      
+      // Load image to get actual dimensions
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = imageDataUrl;
+      });
+      
+      // Calculate dimensions to fit canvas while maintaining aspect ratio
+      const canvasAspect = state.canvasWidth / state.canvasHeight;
+      const imageAspect = img.width / img.height;
+      
+      let width = state.canvasWidth;
+      let height = state.canvasHeight;
+      let scaleX = 1;
+      let scaleY = 1;
+      
+      if (imageAspect > canvasAspect) {
+        // Image is wider, fit to width
+        height = state.canvasWidth / imageAspect;
+        scaleX = scaleY = state.canvasWidth / img.width;
+      } else {
+        // Image is taller, fit to height
+        width = state.canvasHeight * imageAspect;
+        scaleX = scaleY = state.canvasHeight / img.height;
+      }
+      
+      // Center the image
+      const x = (state.canvasWidth - width) / 2;
+      const y = (state.canvasHeight - height) / 2;
+      
+      // Create image element from PDF (background layer)
+      const imageElement: ImageElement = {
+        id: `pdf-image-${Date.now()}`,
+        type: 'image',
+        src: imageDataUrl,
+        alt: file.name,
+        x: Math.max(0, x),
+        y: Math.max(0, y),
+        width: width,
+        height: height,
+        rotation: 0,
+        zIndex: 0, // Background layer
+        locked: true, // Lock background image
+        visible: true,
+        objectFit: 'contain',
+        style: {
+          backgroundColor: 'transparent',
+          opacity: 0.3, // Make background semi-transparent so text is visible
+        },
+      };
+
+      // Add image element to canvas first
+      dispatch({ type: 'ADD_ELEMENT', element: imageElement });
+      
+      // Create editable text elements from extracted text
+      if (textItems.length > 0) {
+        toast.loading(`Creating ${textItems.length} editable text elements...`, { id: 'pdf-text-creating' });
+        
+        // Group text items by proximity (to avoid too many small elements)
+        const groupedTextItems = groupTextItems(textItems, 30); // 30px proximity threshold
+        
+        groupedTextItems.forEach((group, index) => {
+          // Calculate position relative to canvas
+          const textX = (group.x * scaleX) + Math.max(0, x);
+          const textY = (group.y * scaleY) + Math.max(0, y);
+          
+          // Create text element
+          const textElement: TextElement = {
+            id: `pdf-text-${Date.now()}-${index}`,
+            type: 'text',
+            content: group.text,
+            x: Math.max(0, Math.min(textX, state.canvasWidth - 100)),
+            y: Math.max(0, Math.min(textY, state.canvasHeight - 50)),
+            width: Math.max(100, Math.min(group.width * scaleX, state.canvasWidth - textX)),
+            height: Math.max(30, Math.min(group.height * scaleY || 30, state.canvasHeight - textY)),
+            rotation: 0,
+            zIndex: index + 1, // Above background image
+            locked: false,
+            visible: true,
+            multiline: group.text.length > 50,
+            style: {
+              backgroundColor: 'transparent',
+              color: '#000000',
+              fontSize: Math.max(10, Math.min(group.fontSize * scaleY, 24)),
+              fontWeight: 'normal',
+              fontFamily: group.fontName || 'Arial, sans-serif',
+              textAlign: 'left',
+              border: 'none',
+              borderRadius: 0,
+              opacity: 1,
+              padding: 4,
+              margin: 0,
+            },
+          };
+          
+          dispatch({ type: 'ADD_ELEMENT', element: textElement });
+        });
+        
+        toast.dismiss('pdf-text-creating');
+        toast.success(`PDF imported with ${groupedTextItems.length} editable text elements!`, { id: 'pdf-processing' });
+      } else {
+        toast.success('PDF imported as image. You can add text elements manually.', { id: 'pdf-processing' });
+      }
+      
+      // Note: Text elements are already created above, so we don't need to extract CV data separately
+    } catch (error) {
+      console.error('Error processing PDF:', error);
+      toast.error('Failed to import PDF file: ' + (error instanceof Error ? error.message : 'Unknown error'), { id: 'pdf-processing' });
+    } finally {
+      setIsProcessingPDF(false);
+    }
+  }, [dispatch, state.canvasWidth, state.canvasHeight, groupTextItems]);
+
+  // Handle file import (JSON or PDF)
+  const handleImport = useCallback(async (file: File) => {
+    if (!file) return;
+
+    // Check file type
+    if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+      await handlePDFImport(file);
+    } else if (file.type === 'application/json' || file.name.toLowerCase().endsWith('.json')) {
+      handleJSONImport(file);
+    } else {
+      toast.error('Unsupported file type. Please upload PDF or JSON files.');
+    }
+  }, [handlePDFImport, handleJSONImport]);
+
+  // Handle file input change
+  const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleImport(file);
+    }
+    // Reset input so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
+
+  // Drag and drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      await handleImport(files[0]);
+    }
+  }, [handleImport]);
 
   const handleDelete = (projectId: string) => {
     if (confirm('Are you sure you want to delete this project?')) {
@@ -135,7 +373,23 @@ const CanvasSaveLoad: React.FC<CanvasSaveLoadProps> = ({
   const projects = canvasStorageService.getAllProjects();
 
   return (
-    <div className="canvas-save-load">
+    <div 
+      ref={dropZoneRef}
+      className="canvas-save-load"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Drag Overlay */}
+      {isDragOver && (
+        <div className="absolute inset-0 bg-purple-500 bg-opacity-20 border-2 border-purple-500 border-dashed z-50 flex items-center justify-center">
+          <div className="text-center">
+            <ProfessionalIcons.UploadIcon size="xl" className="mx-auto mb-2 text-purple-500" />
+            <p className="text-purple-500 font-semibold">Drop PDF or JSON file here</p>
+          </div>
+        </div>
+      )}
+
       {/* Save/Load Toolbar */}
       <div className="flex items-center space-x-2 p-2 bg-gray-100 border-b border-gray-200">
         <button
@@ -161,11 +415,18 @@ const CanvasSaveLoad: React.FC<CanvasSaveLoadProps> = ({
           <input
             ref={fileInputRef}
             type="file"
-            accept=".json"
-            onChange={handleImport}
+            accept=".json,.pdf,application/json,application/pdf"
+            onChange={handleFileInputChange}
             className="hidden"
+            disabled={isProcessingPDF}
           />
         </label>
+        {isProcessingPDF && (
+          <div className="flex items-center space-x-1 px-3 py-1 text-sm text-gray-600">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></div>
+            <span>Processing PDF...</span>
+          </div>
+        )}
       </div>
 
       {/* Save Dialog */}

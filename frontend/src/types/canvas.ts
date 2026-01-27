@@ -60,6 +60,13 @@ export interface ShapeElement extends BaseElement {
   strokeWidth?: number;
 }
 
+export interface ImageElement extends BaseElement {
+  type: 'image';
+  src: string; // Image source URL or data URL
+  alt?: string;
+  objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
+}
+
 // CV Field binding metadata
 export interface CVBinding {
   fieldType: 'personal-info' | 'experience' | 'education' | 'skills' | 'summary';
@@ -76,8 +83,8 @@ export interface CVFieldElement extends BaseElement {
   cvBinding: CVBinding; // Metadata for CVData binding
 }
 
-export type ElementType = 'text' | 'heading' | 'section' | 'icon' | 'shape' | 'cv-field';
-export type CanvasElement = TextElement | HeadingElement | SectionElement | IconElement | ShapeElement | CVFieldElement;
+export type ElementType = 'text' | 'heading' | 'section' | 'icon' | 'shape' | 'cv-field' | 'image';
+export type CanvasElement = TextElement | HeadingElement | SectionElement | IconElement | ShapeElement | CVFieldElement | ImageElement;
 
 export interface CanvasState {
   elements: CanvasElement[];

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { CanvasElement, CVFieldElement } from '../../types/canvas';
+import { CanvasElement, CVFieldElement, ImageElement } from '../../types/canvas';
 import { useCanvas } from '../../contexts/CanvasContext';
 import { useCVCanvas } from '../../contexts/CVCanvasContext';
 import { ProfessionalIcons } from '../ui/IconSystem';
@@ -252,6 +252,47 @@ const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
           default:
             return <div style={shapeStyle} />;
         }
+
+      case 'image':
+        const imageElement = element as ImageElement;
+        return (
+          <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+            <img
+              src={imageElement.src}
+              alt={imageElement.alt || 'Image'}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: imageElement.objectFit || 'contain',
+                pointerEvents: 'none',
+                userSelect: 'none',
+              }}
+              draggable={false}
+              onError={(e) => {
+                // Show placeholder on error
+                const target = e.currentTarget;
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent) {
+                  const placeholder = document.createElement('div');
+                  placeholder.style.cssText = `
+                    width: 100%;
+                    height: 100%;
+                    background-color: #f3f4f6;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #6b7280;
+                    font-size: 14px;
+                    border: 1px dashed #d1d5db;
+                  `;
+                  placeholder.textContent = 'Image not found';
+                  parent.appendChild(placeholder);
+                }
+              }}
+            />
+          </div>
+        );
 
       default:
         return <div style={baseStyle}>Unknown element type</div>;
