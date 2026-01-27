@@ -277,7 +277,11 @@ export const ProfessionalDashboard: React.FC = () => {
         <div>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-bold text-gray-900">Recent CVs</h3>
-            <ProButton variant="outline" className="border-gray-300 text-gray-700">
+            <ProButton 
+              variant="outline" 
+              className="border-gray-300 text-gray-700"
+              onClick={() => navigate('/editor')}
+            >
               View All
               <ProfessionalIcons.ArrowRightIcon size="sm" className="ml-2" />
             </ProButton>
@@ -328,13 +332,28 @@ export const ProfessionalDashboard: React.FC = () => {
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center space-x-2">
-                          <button className="p-1 text-gray-600 hover:text-blue-600 transition-colors">
+                          <button 
+                            className="p-1 text-gray-600 hover:text-blue-600 transition-colors"
+                            onClick={() => navigate(`/editor/${cv.id}`)}
+                            title="Edit CV"
+                          >
                             <ProfessionalIcons.EditIcon size="sm" />
                           </button>
-                          <button className="p-1 text-gray-600 hover:text-green-600 transition-colors">
+                          <button 
+                            className="p-1 text-gray-600 hover:text-green-600 transition-colors"
+                            onClick={() => navigate(`/editor/${cv.id}`)}
+                            title="View CV"
+                          >
                             <ProfessionalIcons.ViewIcon size="sm" />
                           </button>
-                          <button className="p-1 text-gray-600 hover:text-purple-600 transition-colors">
+                          <button 
+                            className="p-1 text-gray-600 hover:text-purple-600 transition-colors"
+                            onClick={() => {
+                              // Simulate download
+                              toast.success(`Downloading ${cv.name}...`);
+                            }}
+                            title="Download CV"
+                          >
                             <ProfessionalIcons.DownloadIcon size="sm" />
                           </button>
                         </div>

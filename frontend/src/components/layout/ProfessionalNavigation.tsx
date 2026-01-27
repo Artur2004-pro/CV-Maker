@@ -322,6 +322,15 @@ export const ProfessionalNavigation: React.FC = () => {
                     type="text"
                     placeholder="Search CVs, templates, or help..."
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const searchTerm = e.currentTarget.value;
+                        if (searchTerm.trim()) {
+                          toast.success(`Searching for: ${searchTerm}`);
+                          // TODO: Implement actual search functionality
+                        }
+                      }
+                    }}
                   />
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <ProfessionalIcons.SearchIcon size="sm" />

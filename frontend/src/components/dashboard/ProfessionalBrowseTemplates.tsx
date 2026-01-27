@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ProfessionalIcons } from '../ui/IconSystem';
 import { ProButton } from '../ui/ProButton';
 import { ProCard } from '../ui/ProCard';
@@ -31,18 +32,19 @@ interface FilterOptions {
 }
 
 export const ProfessionalBrowseTemplates: React.FC = () => {
+  const navigate = useNavigate();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [filteredTemplates, setFilteredTemplates] = useState<Template[]>([]);
-  const [filters, setFilters] = useState<FilterOptions>({
-    category: 'all',
-    sortBy: 'popular',
-    search: '',
-    price: 'all'
-  });
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const [filters, setFilters] = useState<FilterOptions>({
+    category: 'all',
+    price: 'all',
+    sortBy: 'popular',
+    search: ''
+  });
 
   const categories = [
     { id: 'all', name: 'All Templates', icon: ProfessionalIcons.GridIcon },
@@ -252,11 +254,13 @@ export const ProfessionalBrowseTemplates: React.FC = () => {
       if (selectedTemplate.isPremium) {
         toast.success('Premium template selected! Redirecting to payment...');
         // TODO: Redirect to payment flow
+        setTimeout(() => {
+          navigate('/payment', { state: { templateId: selectedTemplate.id } });
+        }, 1500);
       } else {
         toast.success('Template selected! Redirecting to editor...');
-        // TODO: Redirect to editor with template
         setTimeout(() => {
-          // navigate('/editor', { state: { templateId: selectedTemplate.id } });
+          navigate('/editor', { state: { templateId: selectedTemplate.id } });
         }, 1500);
       }
     }

@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ProfessionalIcons } from '../ui/IconSystem';
 import { ProButton } from '../ui/ProButton';
 import { ProCard } from '../ui/ProCard';
@@ -40,6 +41,7 @@ interface ParsedCVData {
 }
 
 export const ProfessionalUploadCV: React.FC = () => {
+  const navigate = useNavigate();
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -237,9 +239,9 @@ export const ProfessionalUploadCV: React.FC = () => {
   const handleUseParsedCV = () => {
     if (parsedCV) {
       toast.success('CV data imported successfully! Redirecting to editor...');
-      // TODO: Navigate to CV editor with parsed data
+      // Navigate to CV editor with parsed data
       setTimeout(() => {
-        // navigate('/editor', { state: { cvData: parsedCV } });
+        navigate('/editor', { state: { cvData: parsedCV } });
       }, 1500);
     }
   };
