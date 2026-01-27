@@ -1,181 +1,198 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import type { CVData, Template } from '../types/api';
 
-export const generatePDF = async (
-  cvData: CVData,
-  templateId: string,
-  options?: {
-    format?: 'A4' | 'Letter';
-    margins?: number;
-    includePhoto?: boolean;
-  }
-): Promise<Blob> => {
-  // Default options
-  const defaultOptions = {
-    format: 'A4' as const,
-    margins: 20,
-    includePhoto: false,
+interface CVData {
+  personalInfo: {
+    fullName: string;
+    email: string;
+    phone: string;
+    location: string;
+    website?: string;
+    linkedin?: string;
+    summary: string;
   };
+  experience: Array<{
+    id: string;
+    title: string;
+    company: string;
+    location: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+    description: string;
+  }>;
+  education: Array<{
+    id: string;
+    degree: string;
+    institution: string;
+    location: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+    gpa?: string;
+  }>;
+  skills: Array<{
+    id: string;
+    name: string;
+    level: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
+    category: string;
+  }>;
+  projects: Array<{
+    id: string;
+    name: string;
+    description: string;
+    technologies: string[];
+    url?: string;
+    github?: string;
+  }>;
+}
 
-  const finalOptions = { ...defaultOptions, ...options };
+class PDFGenerator {
+  async generatePDF(cvData: CVData): Promise<void> {
+    try {
+      // Create the HTML content for the CV
+      const cvHTML = this.generateCVHTML(cvData);
 
-  // Create the HTML content for the CV
-  const cvHTML = generateCVHTML(cvData, templateId, finalOptions);
+      // Create a temporary div to render the CV
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = cvHTML;
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.width = '210mm';
+      tempDiv.style.padding = '20mm';
+      tempDiv.style.fontFamily = 'Arial, sans-serif';
+      document.body.appendChild(tempDiv);
 
-  // Create a temporary div to render the CV
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = cvHTML;
-  tempDiv.style.position = 'absolute';
-  tempDiv.style.left = '-9999px';
-  tempDiv.style.width = `${finalOptions.format === 'A4' ? 210 : 216}mm`;
-  document.body.appendChild(tempDiv);
+      // Convert HTML to canvas
+      const canvas = await html2canvas(tempDiv, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        width: 794, // A4 width in pixels at 96 DPI
+        height: 1123, // A4 height in pixels at 96 DPI
+      });
 
-  try {
-    // Convert HTML to canvas
-    const canvas = await html2canvas(tempDiv, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-    });
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
 
-    // Create PDF
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: finalOptions.format,
-    });
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = 170; // A4 width minus margins
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    const imgData = canvas.toDataURL('image/png');
-    const imgWidth = pdf.internal.pageSize.getWidth() - (finalOptions.margins * 2);
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
 
-    pdf.addImage(imgData, 'PNG', finalOptions.margins, finalOptions.margins, imgWidth, imgHeight);
+      // Download the PDF
+      const filename = `${cvData.personalInfo.fullName.replace(/\s+/g, '_')}_CV.pdf`;
+      pdf.save(filename);
 
-    return new Blob([pdf.output('blob')], { type: 'application/pdf' });
-  } finally {
-    // Clean up
-    document.body.removeChild(tempDiv);
+      // Clean up
+      document.body.removeChild(tempDiv);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      throw error;
+    }
   }
-};
 
-const generateCVHTML = (cvData: CVData, templateId: string, options: any): string => {
-  const { personalInfo, experience, education, skills, languages, certificates } = cvData;
+  private generateCVHTML(cvData: CVData): string {
+    const { personalInfo, experience, education, skills, projects } = cvData;
 
-  return `
-    <div style="font-family: Arial, sans-serif; padding: ${options.margins}px; max-width: 800px; margin: 0 auto;">
-      <!-- Header -->
-      <header style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px;">
-        <h1 style="margin: 0; font-size: 28px; color: #333;">${personalInfo.firstName} ${personalInfo.lastName}</h1>
-        <p style="margin: 5px 0; color: #666;">${personalInfo.email} | ${personalInfo.phone} | ${personalInfo.location}</p>
-        ${personalInfo.website ? `<p style="margin: 5px 0; color: #666;">${personalInfo.website}</p>` : ''}
-        ${personalInfo.linkedin ? `<p style="margin: 5px 0; color: #666;">LinkedIn: ${personalInfo.linkedin}</p>` : ''}
-        ${personalInfo.github ? `<p style="margin: 5px 0; color: #666;">GitHub: ${personalInfo.github}</p>` : ''}
-      </header>
+    return `
+      <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; color: #333;">
+        <!-- Header -->
+        <header style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px;">
+          <h1 style="margin: 0; font-size: 28px; color: #333; font-weight: bold;">${personalInfo.fullName || 'Your Name'}</h1>
+          <p style="margin: 8px 0; color: #666; font-size: 14px;">${personalInfo.email || 'email@example.com'} | ${personalInfo.phone || '+1 (555) 123-4567'} | ${personalInfo.location || 'City, State'}</p>
+          ${personalInfo.website ? `<p style="margin: 5px 0; color: #666; font-size: 14px;">${personalInfo.website}</p>` : ''}
+          ${personalInfo.linkedin ? `<p style="margin: 5px 0; color: #666; font-size: 14px;">LinkedIn: ${personalInfo.linkedin}</p>` : ''}
+        </header>
 
-      ${personalInfo.summary ? `
-      <!-- Summary -->
-      <section style="margin-bottom: 30px;">
-        <h2 style="font-size: 18px; color: #333; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Professional Summary</h2>
-        <p style="margin: 0; line-height: 1.6; color: #444;">${personalInfo.summary}</p>
-      </section>
-      ` : ''}
+        ${personalInfo.summary ? `
+        <!-- Summary -->
+        <section style="margin-bottom: 30px;">
+          <h2 style="font-size: 18px; color: #333; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px; font-weight: bold;">Professional Summary</h2>
+          <p style="margin: 0; line-height: 1.6; color: #444; font-size: 14px;">${personalInfo.summary}</p>
+        </section>
+        ` : ''}
 
-      ${experience.length > 0 ? `
-      <!-- Experience -->
-      <section style="margin-bottom: 30px;">
-        <h2 style="font-size: 18px; color: #333; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Work Experience</h2>
-        ${experience.map(exp => `
-          <div style="margin-bottom: 20px;">
-            <h3 style="margin: 0; font-size: 16px; color: #333;">${exp.position}</h3>
-            <p style="margin: 5px 0; font-style: italic; color: #666;">${exp.company} | ${exp.startDate} - ${exp.current ? 'Present' : exp.endDate}</p>
-            <p style="margin: 10px 0; line-height: 1.6; color: #444;">${exp.description}</p>
-          </div>
-        `).join('')}
-      </section>
-      ` : ''}
-
-      ${education.length > 0 ? `
-      <!-- Education -->
-      <section style="margin-bottom: 30px;">
-        <h2 style="font-size: 18px; color: #333; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Education</h2>
-        ${education.map(edu => `
-          <div style="margin-bottom: 20px;">
-            <h3 style="margin: 0; font-size: 16px; color: #333;">${edu.degree} in ${edu.field}</h3>
-            <p style="margin: 5px 0; font-style: italic; color: #666;">${edu.school} | ${edu.startDate} - ${edu.current ? 'Present' : edu.endDate}</p>
-            ${edu.gpa ? `<p style="margin: 5px 0; color: #666;">GPA: ${edu.gpa}</p>` : ''}
-          </div>
-        `).join('')}
-      </section>
-      ` : ''}
-
-      ${skills.length > 0 ? `
-      <!-- Skills -->
-      <section style="margin-bottom: 30px;">
-        <h2 style="font-size: 18px; color: #333; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Skills</h2>
-        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-          ${skills.map(skill => `
-            <span style="background-color: #f0f0f0; padding: 5px 10px; border-radius: 15px; font-size: 14px; color: #333;">
-              ${skill.name} (${skill.level})
-            </span>
+        ${experience.length > 0 ? `
+        <!-- Experience -->
+        <section style="margin-bottom: 30px;">
+          <h2 style="font-size: 18px; color: #333; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px; font-weight: bold;">Work Experience</h2>
+          ${experience.map(exp => `
+            <div style="margin-bottom: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 5px;">
+                <div>
+                  <h3 style="margin: 0; font-size: 16px; color: #333; font-weight: bold;">${exp.title}</h3>
+                  <p style="margin: 2px 0; font-style: italic; color: #666; font-size: 14px;">${exp.company} | ${exp.location}</p>
+                </div>
+                <p style="margin: 0; color: #666; font-size: 14px; white-space: nowrap;">${exp.startDate} - ${exp.current ? 'Present' : exp.endDate}</p>
+              </div>
+              ${exp.description ? `<p style="margin: 10px 0; line-height: 1.6; color: #444; font-size: 14px;">${exp.description}</p>` : ''}
+            </div>
           `).join('')}
-        </div>
-      </section>
-      ` : ''}
+        </section>
+        ` : ''}
 
-      ${languages.length > 0 ? `
-      <!-- Languages -->
-      <section style="margin-bottom: 30px;">
-        <h2 style="font-size: 18px; color: #333; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Languages</h2>
-        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-          ${languages.map(lang => `
-            <span style="background-color: #f0f0f0; padding: 5px 10px; border-radius: 15px; font-size: 14px; color: #333;">
-              ${lang.name} (${lang.proficiency})
-            </span>
+        ${education.length > 0 ? `
+        <!-- Education -->
+        <section style="margin-bottom: 30px;">
+          <h2 style="font-size: 18px; color: #333; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px; font-weight: bold;">Education</h2>
+          ${education.map(edu => `
+            <div style="margin-bottom: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 5px;">
+                <div>
+                  <h3 style="margin: 0; font-size: 16px; color: #333; font-weight: bold;">${edu.degree}</h3>
+                  <p style="margin: 2px 0; font-style: italic; color: #666; font-size: 14px;">${edu.institution} | ${edu.location}</p>
+                  ${edu.gpa ? `<p style="margin: 2px 0; color: #666; font-size: 14px;">GPA: ${edu.gpa}</p>` : ''}
+                </div>
+                <p style="margin: 0; color: #666; font-size: 14px; white-space: nowrap;">${edu.startDate} - ${edu.current ? 'Present' : edu.endDate}</p>
+              </div>
+            </div>
           `).join('')}
-        </div>
-      </section>
-      ` : ''}
+        </section>
+        ` : ''}
 
-      ${certificates.length > 0 ? `
-      <!-- Certificates -->
-      <section style="margin-bottom: 30px;">
-        <h2 style="font-size: 18px; color: #333; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Certificates</h2>
-        ${certificates.map(cert => `
-          <div style="margin-bottom: 15px;">
-            <h3 style="margin: 0; font-size: 16px; color: #333;">${cert.name}</h3>
-            <p style="margin: 5px 0; font-style: italic; color: #666;">${cert.issuer} | ${cert.date}</p>
-            ${cert.url ? `<p style="margin: 5px 0; color: #666;">${cert.url}</p>` : ''}
+        ${skills.length > 0 ? `
+        <!-- Skills -->
+        <section style="margin-bottom: 30px;">
+          <h2 style="font-size: 18px; color: #333; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px; font-weight: bold;">Skills</h2>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            ${skills.map(skill => `
+              <span style="background-color: #f5f5f5; padding: 6px 12px; border-radius: 20px; font-size: 13px; color: #333; border: 1px solid #ddd;">
+                ${skill.name} (${skill.level})
+              </span>
+            `).join('')}
           </div>
-        `).join('')}
-      </section>
-      ` : ''}
-    </div>
-  `;
-};
+        </section>
+        ` : ''}
 
-export const downloadPDF = async (
-  cvData: CVData,
-  templateId: string,
-  filename: string = 'cv.pdf',
-  options?: {
-    format?: 'A4' | 'Letter';
-    margins?: number;
-    includePhoto?: boolean;
+        ${projects.length > 0 ? `
+        <!-- Projects -->
+        <section style="margin-bottom: 30px;">
+          <h2 style="font-size: 18px; color: #333; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px; font-weight: bold;">Projects</h2>
+          ${projects.map(project => `
+            <div style="margin-bottom: 20px;">
+              <h3 style="margin: 0; font-size: 16px; color: #333; font-weight: bold;">${project.name}</h3>
+              <p style="margin: 5px 0; color: #666; font-size: 13px; font-style: italic;">Technologies: ${project.technologies.join(', ')}</p>
+              ${project.description ? `<p style="margin: 10px 0; line-height: 1.6; color: #444; font-size: 14px;">${project.description}</p>` : ''}
+              ${(project.url || project.github) ? `
+                <p style="margin: 5px 0; color: #666; font-size: 13px;">
+                  ${project.url ? `<span>Live Demo: ${project.url}</span>` : ''}
+                  ${project.url && project.github ? ' | ' : ''}
+                  ${project.github ? `<span>GitHub: ${project.github}</span>` : ''}
+                </p>
+              ` : ''}
+            </div>
+          `).join('')}
+        </section>
+        ` : ''}
+      </div>
+    `;
   }
-): Promise<void> => {
-  try {
-    const pdfBlob = await generatePDF(cvData, templateId, options);
-    const url = URL.createObjectURL(pdfBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error('Error generating PDF:', error);
-    throw error;
-  }
-};
+}
+
+export const pdfGenerator = new PDFGenerator();

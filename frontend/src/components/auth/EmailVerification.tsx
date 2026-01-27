@@ -80,25 +80,25 @@ export const EmailVerification: React.FC<EmailVerificationProps> = ({
   };
 
   return (
-    <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float" style={{ animationDelay: '4s' }}></div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%234F46E5' fill-opacity='0.05'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E")`
+        }} />
       </div>
 
       <div className="relative z-10 w-full max-w-md">
-        <ProCard variant="glass" className="p-8">
+        <ProCard variant="elevated" className="p-8 shadow-2xl border-0">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl mb-4 shadow-lg">
               <Mail className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Verify Your Email</h1>
-            <p className="text-white/80">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Verify Your Email</h1>
+            <p className="text-gray-600">
               We've sent a 6-digit code to<br />
-              <span className="font-medium">{email}</span>
+              <span className="font-semibold text-gray-900">{email}</span>
             </p>
           </div>
 
@@ -114,10 +114,11 @@ export const EmailVerification: React.FC<EmailVerificationProps> = ({
                 onChange={handleCodeChange}
                 error={error}
                 icon={<Mail className="w-5 h-5" />}
-                variant="glass"
+                variant="default"
                 maxLength={6}
                 required
-                className="text-center text-2xl tracking-widest"
+                className="text-center text-2xl tracking-widest font-mono"
+                helperText="Enter the 6-digit code from your email"
               />
             </div>
 
@@ -127,7 +128,7 @@ export const EmailVerification: React.FC<EmailVerificationProps> = ({
                 type="button"
                 onClick={handleResend}
                 disabled={isResending}
-                className="text-white/80 hover:text-white text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+                className="text-gray-600 hover:text-blue-600 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
               >
                 <RefreshCw className={`w-4 h-4 ${isResending ? 'animate-spin' : ''}`} />
                 {isResending ? 'Sending...' : "Didn't receive the code? Resend"}
@@ -141,7 +142,8 @@ export const EmailVerification: React.FC<EmailVerificationProps> = ({
                 loading={isLoading}
                 fullWidth
                 size="lg"
-                className="py-3 bg-white/20 hover:bg-white/30 text-white border border-white/30"
+                variant="primary"
+                className="py-3 shadow-lg hover:shadow-xl"
               >
                 {isLoading ? 'Verifying...' : 'Verify Email'}
                 {!isLoading && <ArrowRight className="w-4 h-4 ml-2" />}
@@ -153,7 +155,7 @@ export const EmailVerification: React.FC<EmailVerificationProps> = ({
                 fullWidth
                 size="lg"
                 variant="outline"
-                className="py-3 border-white/30 text-white/80 hover:text-white hover:bg-white/10"
+                className="py-3 border-gray-300 text-gray-700 hover:border-gray-400 hover:text-gray-900"
               >
                 Back to Register
               </ProButton>
@@ -162,7 +164,7 @@ export const EmailVerification: React.FC<EmailVerificationProps> = ({
 
           {/* Help Text */}
           <div className="mt-6 text-center">
-            <p className="text-white/60 text-sm">
+            <p className="text-gray-500 text-sm">
               Check your spam folder if you don't see the email
             </p>
           </div>

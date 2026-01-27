@@ -33,7 +33,7 @@ class CVDataService {
   }
 
   // Load CV data from backend or localStorage
-  async loadCVData(): Promise<CVData | null> {
+  async getCVData(): Promise<CVData | null> {
     try {
       // Try to load from backend first
       const response = await apiClient.get('/cv/load');

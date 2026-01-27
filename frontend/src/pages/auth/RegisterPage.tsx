@@ -96,26 +96,26 @@ export const RegisterPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float" style={{ animationDelay: '4s' }}></div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%234F46E5' fill-opacity='0.05'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E")`
+        }} />
       </div>
 
       <div className="relative z-10 w-full max-w-md">
-        <ProCard variant="glass" className="p-8">
+        <ProCard variant="elevated" className="p-8 shadow-2xl border-0">
           {/* Logo/Brand */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl mb-4 shadow-lg">
               <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
                 <path fillRule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H6a2 2 0 100 4h2a2 2 0 100-4h2a1 1 0 100-2 2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2H6z" clipRule="evenodd"/>
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-            <p className="text-white/80">Join CV Maker and build your professional resume</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
+            <p className="text-gray-600">Join CV Maker and build your professional resume</p>
           </div>
 
           {/* Register Form */}
@@ -129,7 +129,7 @@ export const RegisterPage: React.FC = () => {
               onChange={handleChange}
               error={errors.email}
               icon={<Mail className="w-5 h-5" />}
-              variant="glass"
+              variant="default"
               required
             />
 
@@ -142,7 +142,8 @@ export const RegisterPage: React.FC = () => {
               onChange={handleChange}
               error={errors.password}
               icon={<Lock className="w-5 h-5" />}
-              variant="glass"
+              variant="default"
+              helperText="Must be at least 6 characters"
               required
             />
 
@@ -155,24 +156,24 @@ export const RegisterPage: React.FC = () => {
               onChange={handleChange}
               error={errors.confirmPassword}
               icon={<Lock className="w-5 h-5" />}
-              variant="glass"
+              variant="default"
               required
             />
 
             {/* Terms and conditions */}
-            <div className="flex items-center">
+            <div className="flex items-start space-x-3">
               <input
                 type="checkbox"
-                className="w-4 h-4 rounded border-white/20 bg-white/10 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
+                className="mt-1 w-4 h-4 rounded-lg border-gray-300 bg-white text-blue-600 focus:ring-blue-500 focus:ring-2"
                 required
               />
-              <span className="ml-2 text-white/80 text-sm">
+              <span className="text-sm text-gray-600">
                 I agree to the{' '}
-                <Link to="/terms" className="text-white hover:text-white/80 underline">
+                <Link to="/terms" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link to="/privacy" className="text-white hover:text-white/80 underline">
+                <Link to="/privacy" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
                   Privacy Policy
                 </Link>
               </span>
@@ -184,7 +185,8 @@ export const RegisterPage: React.FC = () => {
               loading={isLoading}
               fullWidth
               size="lg"
-              className="py-3 bg-white/20 hover:bg-white/30 text-white border border-white/30"
+              variant="primary"
+              className="py-3 shadow-lg hover:shadow-xl"
             >
               {isLoading ? 'Creating account...' : 'Create Account'}
               {!isLoading && <ArrowRight className="w-4 h-4 ml-2" />}
@@ -193,11 +195,11 @@ export const RegisterPage: React.FC = () => {
 
           {/* Sign in link */}
           <div className="mt-8 text-center">
-            <p className="text-white/80 text-sm">
+            <p className="text-gray-600 text-sm">
               Already have an account?{' '}
               <Link
                 to="/login"
-                className="text-white font-medium hover:text-white/80 transition-colors"
+                className="text-blue-600 font-medium hover:text-blue-700 transition-colors"
               >
                 Sign in
               </Link>
@@ -206,7 +208,7 @@ export const RegisterPage: React.FC = () => {
         </ProCard>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-white/60 text-sm">
+        <div className="mt-8 text-center text-gray-500 text-sm">
           <p>&copy; 2024 CV Maker. All rights reserved.</p>
         </div>
       </div>

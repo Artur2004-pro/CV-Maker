@@ -2,11 +2,14 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import LoginPage from './pages/auth/LoginPage';
+import ProfessionalLoginPage from './pages/auth/ProfessionalLoginPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import CVEditorPage from './pages/editor/CVEditorPage';
 import TemplatesPage from './pages/templates/TemplatesPage';
 import TemplateCreatorPage from './pages/template-creator/TemplateCreatorPage';
+import ProfessionalAnalytics from './components/dashboard/ProfessionalAnalytics';
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -54,7 +57,15 @@ export const AppRouter: React.FC = () => {
         path="/login"
         element={
           <PublicRoute>
-            <LoginPage />
+            <ProfessionalLoginPage />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <PublicRoute>
+            <ForgotPasswordPage />
           </PublicRoute>
         }
       />
@@ -105,6 +116,15 @@ export const AppRouter: React.FC = () => {
         element={
           <ProtectedRoute>
             <TemplateCreatorPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/analytics"
+        element={
+          <ProtectedRoute>
+            <ProfessionalAnalytics />
           </ProtectedRoute>
         }
       />

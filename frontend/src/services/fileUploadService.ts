@@ -383,6 +383,17 @@ class FileUploadService {
   getMaxFileSize(): number {
     return this.MAX_FILE_SIZE;
   }
+
+  // Simple upload method for dashboard component
+  async uploadCV(file: File, onProgress?: (progress: number) => void): Promise<void> {
+    const result = await this.uploadCVFile(file, (progress) => {
+      onProgress?.(progress.percentage);
+    });
+
+    if (!result.success) {
+      throw new Error(result.error || 'Upload failed');
+    }
+  }
 }
 
 // Create singleton instance
