@@ -188,6 +188,34 @@ export const ProfessionalDashboard: React.FC = () => {
 
     return (
       <div className="space-y-8">
+        {/* Primary CV Actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Create your next CV</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Start from an AI-assisted flow or design from scratch on the canvas editor.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <ProButton
+              variant="primary"
+              className="flex items-center justify-center px-4 py-2"
+              onClick={() => navigate('/cv/generate')}
+            >
+              <ProfessionalIcons.SparkleIcon size="sm" className="mr-2" />
+              Generate CV
+            </ProButton>
+            <ProButton
+              variant="outline"
+              className="flex items-center justify-center px-4 py-2"
+              onClick={() => navigate('/editor')}
+            >
+              <ProfessionalIcons.EditIcon size="sm" className="mr-2" />
+              Create CV from Scratch
+            </ProButton>
+          </div>
+        </div>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <ProCard variant="elevated" className="p-6 border-0 shadow-lg">

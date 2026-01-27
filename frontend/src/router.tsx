@@ -2,16 +2,16 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import LoginPage from './pages/auth/LoginPage';
-import ProfessionalLoginPage from './pages/auth/ProfessionalLoginPage';
-import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import RegisterPage from './pages/auth/RegisterPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
-import CVEditorPage from './pages/editor/CVEditorPage';
 import CanvasCVEditorPage from './pages/canvas/CanvasCVEditorPage';
 import CanvasTemplatePage from './pages/canvas/CanvasTemplatePage';
 import TemplatesPage from './pages/templates/TemplatesPage';
 import TemplateCreatorPage from './pages/template-creator/TemplateCreatorPage';
 import ProfessionalAnalytics from './components/dashboard/ProfessionalAnalytics';
+import GenerateCVFormPage from './pages/cv/GenerateCVFormPage';
+import TemplateSelectionPage from './pages/cv/TemplateSelectionPage';
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -59,15 +59,7 @@ export const AppRouter: React.FC = () => {
         path="/login"
         element={
           <PublicRoute>
-            <ProfessionalLoginPage />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/forgot-password"
-        element={
-          <PublicRoute>
-            <ForgotPasswordPage />
+            <LoginPage />
           </PublicRoute>
         }
       />
@@ -82,6 +74,14 @@ export const AppRouter: React.FC = () => {
 
       {/* Protected Routes */}
       <Route
+        path="/forgot-password"
+        element={
+          <ProtectedRoute>
+            <ForgotPasswordPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
@@ -90,10 +90,26 @@ export const AppRouter: React.FC = () => {
         }
       />
       <Route
+        path="/cv/generate"
+        element={
+          <ProtectedRoute>
+            <GenerateCVFormPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cv/templates"
+        element={
+          <ProtectedRoute>
+            <TemplateSelectionPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/editor"
         element={
           <ProtectedRoute>
-            <CVEditorPage />
+            <CanvasCVEditorPage />
           </ProtectedRoute>
         }
       />
@@ -101,7 +117,7 @@ export const AppRouter: React.FC = () => {
         path="/editor/:id"
         element={
           <ProtectedRoute>
-            <CVEditorPage />
+            <CanvasCVEditorPage />
           </ProtectedRoute>
         }
       />
@@ -121,26 +137,19 @@ export const AppRouter: React.FC = () => {
           </ProtectedRoute>
         }
       />
-
-      <Route
-        path="/canvas"
-        element={<CanvasTemplatePage />}
-      />
-
-      <Route
-        path="/editor/:id?"
-        element={
-          <ProtectedRoute>
-            <CanvasCVEditorPage />
-          </ProtectedRoute>
-        }
-      />
-
       <Route
         path="/analytics"
         element={
           <ProtectedRoute>
             <ProfessionalAnalytics />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/canvas"
+        element={
+          <ProtectedRoute>
+            <CanvasTemplatePage />
           </ProtectedRoute>
         }
       />
