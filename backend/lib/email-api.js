@@ -3,7 +3,7 @@ const env = require("../helpers/env.js");
 
 class EmailAPI {
   static transporter = nodemailer.createTransport({
-    host: "smtp-relay.brevo.com", // կամ SMTP պրովայդեր քո ընտրությամբ
+    host: "smtp.gmail.com", // Use Gmail's SMTP server
     port: 587,
     secure: false,
     auth: {
@@ -15,15 +15,15 @@ class EmailAPI {
   // Send verification email (registration)
   async sendVerificationEmail(email, code) {
     const mailOptions = {
-      from: `artgrigoryan771@gmail.com`,
+      from: env.APP_EMAIL,
       to: email,
-      subject: "Բարև Bardiner CV-Maker-ից 🚀 Վավերացրեք ձեր էլ․ հասցեն",
-      text: `Շնորհակալություն, որ գրանցվել եք Bardiner CV-Maker-ում: Ձեր verification code-ը՝ ${code}`,
+      subject: "CV Maker - Verify Your Email",
+      text: `Your verification code is: ${code}`,
       html: `
       <div style="font-family: Arial, sans-serif; text-align: center; padding: 30px; background-color: #f9f9f9;">
-        <h1 style="color: #4a90e2; margin-bottom: 10px;">Bardiner CV-Maker</h1>
+        <h1 style="color: #4a90e2; margin-bottom: 10px;">CV Maker</h1>
         <p style="font-size: 16px; color: #333;">
-          Շնորհակալություն, որ գրանցվել եք: Մուտքագրեք այս կոդը verification համար՝
+          Thank you for registering! Your verification code is:
         </p>
         <div style="
           display: inline-block;
@@ -38,7 +38,7 @@ class EmailAPI {
           ${code}
         </div>
         <p style="font-size: 12px; color: #888;">
-          Եթե դուք չեք ստեղծել այս հաշիվը, պարզապես անտեսեք այս նամակը:
+          This code will expire in 15 minutes.
         </p>
       </div>
       `,
@@ -50,15 +50,15 @@ class EmailAPI {
   // Send password reset email
   async sendPasswordResetEmail(email, code) {
     const mailOptions = {
-      from: `artgrigoryan771@gmail.com`,
+      from: env.APP_EMAIL,
       to: email,
-      subject: "Bardiner CV-Maker — Reset Password",
-      text: `Ձեր reset code-ը՝ ${code} (վավեր է 15 րոպե)`,
+      subject: "CV Maker - Reset Password",
+      text: `Your password reset code is: ${code}`,
       html: `
       <div style="font-family: Arial, sans-serif; text-align: center; padding: 30px; background-color: #f9f9f9;">
-        <h1 style="color: #4a90e2; margin-bottom: 10px;">Bardiner CV-Maker</h1>
+        <h1 style="color: #4a90e2; margin-bottom: 10px;">CV Maker</h1>
         <p style="font-size: 16px; color: #333;">
-          Ձեր գաղտնաբառը վերականգնելու համար օգտագործեք այս կոդը՝
+          You requested to reset your password. Use this code:
         </p>
         <div style="
           display: inline-block;
@@ -73,7 +73,7 @@ class EmailAPI {
           ${code}
         </div>
         <p style="font-size: 12px; color: #888;">
-          Կոդը վավեր է միայն 15 րոպե:
+          This code is valid for 15 minutes only.
         </p>
       </div>
       `,

@@ -12,9 +12,10 @@ class AuthController {
           new APIResponse(statusCodes.SUCCESS, true, "Login successful", token),
         );
     } catch (err) {
+      const statusCode = err.statusCode || statusCodes.UNAUTHORIZED;
       return res
-        .status(err.statusCode)
-        .json(new APIResponse(err.statusCode, false, err.message));
+        .status(statusCode)
+        .json(new APIResponse(statusCode, false, err.message));
     }
   }
   async signup(req, res) {
@@ -22,11 +23,12 @@ class AuthController {
       await AuthController.service.handleSignup(req.body);
       return res
         .status(statusCodes.CREATED)
-        .json(new APIResponse(statusCodes.CREATED, true, "User created", null));
+        .json(new APIResponse(statusCodes.CREATED, true, "User created successfully", null));
     } catch (err) {
+      const statusCode = err.statusCode || statusCodes.BAD_REQUEST;
       return res
-        .status(err.statusCode)
-        .json(new APIResponse(err.statusCode, false, err.message));
+        .status(statusCode)
+        .json(new APIResponse(statusCode, false, err.message));
     }
   }
   async verifyEmail(req, res) {
@@ -38,9 +40,10 @@ class AuthController {
           new APIResponse(statusCodes.SUCCESS, true, "Email verified", token),
         );
     } catch (err) {
+      const statusCode = err.statusCode || statusCodes.BAD_REQUEST;
       return res
-        .status(err.statusCode)
-        .json(new APIResponse(err.statusCode, false, err.message));
+        .status(statusCode)
+        .json(new APIResponse(statusCode, false, err.message));
     }
   }
   async resendVerificationCode(req, res) {
@@ -56,9 +59,10 @@ class AuthController {
           ),
         );
     } catch (err) {
+      const statusCode = err.statusCode || statusCodes.NOT_FOUND;
       return res
-        .status(err.statusCode)
-        .json(new APIResponse(err.statusCode, false, err.message));
+        .status(statusCode)
+        .json(new APIResponse(statusCode, false, err.message));
     }
   }
   async forgotPassword(req, res) {
@@ -74,9 +78,10 @@ class AuthController {
           ),
         );
     } catch (err) {
+      const statusCode = err.statusCode || statusCodes.NOT_FOUND;
       return res
-        .status(err.statusCode)
-        .json(new APIResponse(err.statusCode, false, err.message));
+        .status(statusCode)
+        .json(new APIResponse(statusCode, false, err.message));
     }
   }
   async resetPassword(req, res) {
@@ -93,9 +98,10 @@ class AuthController {
           ),
         );
     } catch (err) {
+      const statusCode = err.statusCode || statusCodes.BAD_REQUEST;
       return res
-        .status(err.statusCode)
-        .json(new APIResponse(err.statusCode, false, err.message));
+        .status(statusCode)
+        .json(new APIResponse(statusCode, false, err.message));
     }
   }
 }

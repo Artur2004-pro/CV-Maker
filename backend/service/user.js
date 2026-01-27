@@ -19,7 +19,20 @@ class UserService {
       if (!itsOk) {
         throw new Errors.BadRequestException("Invalid credentials");
       }
-      return generateToken({ id: found._id });
+      
+      const token = generateToken({ id: found._id });
+      
+      // Return token and user data
+      return {
+        token,
+        user: {
+          id: found._id,
+          email: found.email,
+          isVerified: found.isVerified,
+          createdAt: found.createdAt,
+          updatedAt: found.updatedAt
+        }
+      };
     } catch (err) {
       throw Errors.handleServiceError(err);
     }
@@ -29,7 +42,9 @@ class UserService {
       const { email, password } = data;
       const existingUser = await User.findOne({ email });
       if (existingUser) {
-        throw new Errors.ConflictException("Email already taken");
+        const error = new Error("Email already taken");
+        error.statusCode = 409;
+        throw error;
       }
       const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = await User.create({

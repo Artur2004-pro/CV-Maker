@@ -9,6 +9,31 @@ const userSchema = new mongoose.Schema(
     passwordResetCode: { type: String },
     passwordResetCodeExpiry: { type: Date },
     isVerified: { type: Boolean, default: false },
+    profile: {
+      firstName: { type: String, default: '' },
+      lastName: { type: String, default: '' },
+      phone: { type: String, default: '' },
+      location: { type: String, default: '' },
+      summary: { type: String, default: '' },
+      skills: [{ type: String }],
+      languages: [{
+        name: { type: String },
+        level: { type: String }
+      }],
+      experience: [{
+        company: { type: String },
+        position: { type: String },
+        startDate: { type: String },
+        endDate: { type: String },
+        description: { type: String }
+      }],
+      education: [{
+        school: { type: String },
+        degree: { type: String },
+        startDate: { type: String },
+        endDate: { type: String }
+      }]
+    }
   },
   { timestamps: true },
 );
