@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { CanvasElement, CVFieldElement, ImageElement } from '../../types/canvas';
+import { CanvasElement, CVFieldElement, ImageElement, HeadingElement, TextElement } from '../../types/canvas';
 import { useCanvas } from '../../contexts/CanvasContext';
 import { useCVCanvas } from '../../contexts/CVCanvasContext';
 import { ProfessionalIcons } from '../ui/IconSystem';
@@ -109,6 +109,10 @@ const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
               ...baseStyle,
               whiteSpace: cvField.multiline ? 'pre-wrap' : 'nowrap',
               overflow: cvField.multiline ? 'auto' : 'hidden',
+              wordWrap: 'break-word',
+              overflowWrap: 'break-word',
+              display: 'block',
+              minHeight: '20px',
             }}
             contentEditable={!element.locked}
             suppressContentEditableWarning
@@ -139,9 +143,16 @@ const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
         );
 
       case 'text':
+        const textElement = element as TextElement;
         return (
           <div
-            style={baseStyle}
+            style={{
+              ...baseStyle,
+              wordWrap: 'break-word',
+              overflowWrap: 'break-word',
+              whiteSpace: textElement.multiline ? 'pre-wrap' : 'nowrap',
+              overflow: textElement.multiline ? 'auto' : 'hidden',
+            }}
             contentEditable={!element.locked}
             suppressContentEditableWarning
             onBlur={(e) => {
@@ -152,15 +163,22 @@ const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
               });
             }}
           >
-            {element.content || element.placeholder || 'Click to edit text'}
+            {textElement.content || textElement.placeholder || 'Click to edit text'}
           </div>
         );
 
       case 'heading':
-        const HeadingTag = `h${element.level}` as keyof JSX.IntrinsicElements;
+        const headingElement = element as HeadingElement;
+        const HeadingTag = `h${headingElement.level}` as keyof JSX.IntrinsicElements;
         return (
           <HeadingTag
-            style={baseStyle}
+            style={{
+              ...baseStyle,
+              margin: 0,
+              display: 'block',
+              wordWrap: 'break-word',
+              overflowWrap: 'break-word',
+            }}
             contentEditable={!element.locked}
             suppressContentEditableWarning
             onBlur={(e) => {
@@ -171,7 +189,7 @@ const CanvasElementComponent: React.FC<CanvasElementComponentProps> = ({
               });
             }}
           >
-            {element.content || `Heading ${element.level}`}
+            {headingElement.content || `Heading ${headingElement.level}`}
           </HeadingTag>
         );
 

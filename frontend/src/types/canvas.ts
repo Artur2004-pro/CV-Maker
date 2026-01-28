@@ -173,4 +173,5 @@ export type CanvasAction =
   | { type: 'TOGGLE_GRID' }
   | { type: 'TOGGLE_SNAP_TO_GRID' }
   | { type: 'LOAD_PROJECT'; project: CVProject }
-  | { type: 'RESET_CANVAS' };
+  | { type: 'RESET_CANVAS' }
+  | { type: 'RESET_AND_ADD_ELEMENTS'; elements: CanvasElement[]; width?: number; height?: number };

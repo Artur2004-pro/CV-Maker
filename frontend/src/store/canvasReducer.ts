@@ -178,6 +178,16 @@ export const canvasReducer = (state: CanvasState = initialState, action: CanvasA
       return initialState;
     }
 
+    case 'RESET_AND_ADD_ELEMENTS': {
+      const newState: CanvasState = {
+        ...initialState,
+        elements: action.elements,
+        canvasWidth: action.width || initialState.canvasWidth,
+        canvasHeight: action.height || initialState.canvasHeight,
+      };
+      return saveToHistory(newState, state);
+    }
+
     default:
       return state;
   }

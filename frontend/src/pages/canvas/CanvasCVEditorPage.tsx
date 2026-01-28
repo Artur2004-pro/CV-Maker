@@ -33,20 +33,30 @@ const CanvasCVEditorContent: React.FC = () => {
   }, [cvData]);
 
   useEffect(() => {
-    // Применяем шаблон только один раз при монтировании или при изменении templateId
-    if (templateId && templateId !== initialTemplateIdRef.current) {
-      const template = getTemplatePreset(templateId);
-      if (template) {
-        console.log('[CanvasCVEditorPage] Applying template on mount:', templateId);
-        // Используем refs для получения актуальных значений без добавления в зависимости
-        applyTemplateRef.current(template, cvDataRef.current);
-        initialTemplateIdRef.current = templateId;
-      } else {
-        console.warn('[CanvasCVEditorPage] Template not found:', templateId);
-        toast.error(`Template "${templateId}" not found. Using default template.`);
+    // Применяем шаблон при монтировании, изменении templateId или cvData
+    if (templateId && cvData) {
+      // Проверяем, нужно ли применить шаблон (новый templateId или новый cvData)
+      const templateChanged = templateId !== initialTemplateIdRef.current;
+      const cvDataChanged = JSON.stringify(cvDataRef.current) !== JSON.stringify(cvData);
+      
+      if (templateChanged || cvDataChanged) {
+        const template = getTemplatePreset(templateId);
+        if (template) {
+          console.log('[CanvasCVEditorPage] Applying template:', {
+            templateId,
+            reason: templateChanged ? 'templateId changed' : 'cvData changed',
+            cvDataPresent: !!cvData
+          });
+          // Используем refs для получения актуальных значений без добавления в зависимости
+          applyTemplateRef.current(template, cvDataRef.current);
+          initialTemplateIdRef.current = templateId;
+        } else {
+          console.warn('[CanvasCVEditorPage] Template not found:', templateId);
+          toast.error(`Template "${templateId}" not found. Using default template.`);
+        }
       }
     }
-  }, [templateId]); // Только templateId в зависимостях
+  }, [templateId, cvData]); // Добавлен cvData в зависимости для re-apply при изменении
 
   return <CanvasEditor />;
 };
@@ -57,17 +67,19 @@ const CanvasCVEditorPage: React.FC = () => {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
   
-  // Стабилизируем state из location, чтобы избежать пересоздания при каждом рендере
-  const locationStateRef = useRef<EditorLocationState | null>(null);
-  
-  // Обновляем ref только при изменении location.state
+  // Получаем state из location напрямую (для PDF import)
+  const state = (location.state as EditorLocationState) || {};
+
+  // Debug: Log location state on mount and changes
   useEffect(() => {
-    if (location.state) {
-      locationStateRef.current = location.state as EditorLocationState;
-    }
-  }, [location.state]);
-  
-  const state = locationStateRef.current || {};
+    console.log('[CanvasCVEditorPage] Location state changed:', {
+      pathname: location.pathname,
+      state: location.state,
+      hasCvData: !!(location.state as EditorLocationState)?.cvData,
+      hasTemplateId: !!(location.state as EditorLocationState)?.templateId,
+      fullState: location.state
+    });
+  }, [location]);
 
   const [initialCVData, setInitialCVData] = useState<CVData | undefined>(undefined);
   const [initialTemplateId, setInitialTemplateId] = useState<string | undefined>(undefined);
@@ -81,24 +93,64 @@ const CanvasCVEditorPage: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Load CV data if ID is provided
+  // Load CV data if ID is provided or if cvData is in location state
   useEffect(() => {
     // Не загружаем данные, если пользователь не аутентифицирован
     if (!isAuthenticated) {
       return;
     }
 
+    // Если есть cvData в location state, загружаем его (PDF import case)
+    const hasLocationCVData = state.cvData && !id;
+    
     // Предотвращаем повторную загрузку данных для того же id
-    // Используем null как начальное значение, чтобы отличить от undefined
-    if (dataLoadedRef.current === id) {
+    // Но разрешаем загрузку, если есть новый cvData в location state
+    const locationStateKey = state.cvData ? JSON.stringify(state.cvData).substring(0, 50) : null;
+    const lastLoadedKey = dataLoadedRef.current;
+    
+    if (lastLoadedKey === id && !hasLocationCVData && !locationStateKey) {
       return;
     }
 
     const loadCVData = async () => {
-
       try {
         let cvData: CVData | undefined = state.cvData;
         let templateId: string | undefined = state.templateId;
+        
+        // Try to load from sessionStorage if location state is missing
+        if (!cvData && !id) {
+          try {
+            const pendingCvData = sessionStorage.getItem('pending_cv_data');
+            if (pendingCvData) {
+              cvData = JSON.parse(pendingCvData);
+              sessionStorage.removeItem('pending_cv_data'); // Clean up after use
+              console.log('[CanvasCVEditorPage] Loaded CV data from sessionStorage');
+            }
+          } catch (storageError) {
+            console.warn('[CanvasCVEditorPage] Failed to load from sessionStorage:', storageError);
+          }
+        }
+        
+        console.log('[CanvasCVEditorPage] Loading CV data:', {
+          hasLocationState: !!state.cvData,
+          hasSessionStorage: !!sessionStorage.getItem('pending_cv_data'),
+          hasId: !!id,
+          cvData: cvData ? 'present' : 'missing',
+          templateId,
+          locationState: state,
+          fullLocationState: location.state
+        });
+        
+        // Log if cvData is from PDF import
+        if (cvData && !id) {
+          console.log('[CanvasCVEditorPage] PDF import detected - cvData:', {
+            source: state.cvData ? 'location state' : 'sessionStorage',
+            personalInfo: cvData.personalInfo,
+            experienceCount: cvData.experience?.length || 0,
+            educationCount: cvData.education?.length || 0,
+            skillsCount: cvData.skills?.length || 0
+          });
+        }
 
         // If ID is provided, load from backend
         if (id) {
@@ -150,8 +202,8 @@ const CanvasCVEditorPage: React.FC = () => {
         setInitialCVData(cvData);
         setInitialTemplateId(templateId);
         setIsLoading(false);
-        // Сохраняем id (может быть undefined) для предотвращения повторной загрузки
-        dataLoadedRef.current = id;
+        // Сохраняем id или location state key для предотвращения повторной загрузки
+        dataLoadedRef.current = id || locationStateKey || 'loaded';
 
         console.log('[CanvasCVEditorPage] Initialized with:', {
           cvData,
@@ -167,7 +219,7 @@ const CanvasCVEditorPage: React.FC = () => {
 
     loadCVData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, isAuthenticated]);
+  }, [id, isAuthenticated, state.cvData, state.templateId]);
 
   if (!isAuthenticated) {
     return null;

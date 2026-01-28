@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
 interface CVData {
@@ -85,9 +85,30 @@ class PDFGenerator {
 
       pdf.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
 
-      // Download the PDF
+      // Open PDF in new window and also download it
       const filename = `${cvData.personalInfo.fullName.replace(/\s+/g, '_')}_CV.pdf`;
-      pdf.save(filename);
+      
+      // Generate data URL for opening in new window
+      try {
+        // Get PDF as data URL
+        const pdfDataUrl = pdf.output('dataurlstring');
+        
+        // Open PDF in new window
+        const newWindow = window.open(pdfDataUrl, '_blank');
+        
+        // If popup was blocked, fallback to download only
+        if (!newWindow) {
+          console.warn('Popup blocked, downloading PDF instead');
+          pdf.save(filename);
+        } else {
+          // Also trigger download
+          pdf.save(filename);
+        }
+      } catch (error) {
+        // Fallback: if opening fails, just download
+        console.error('Error opening PDF in new window, downloading PDF:', error);
+        pdf.save(filename);
+      }
 
       // Clean up
       document.body.removeChild(tempDiv);

@@ -191,22 +191,36 @@ export const CVCanvasProvider: React.FC<CVCanvasProviderProps> = ({
       
       const canvasElements = applyTemplateToCanvas(template, cvDataToApply);
       
-      // Clear existing elements and add template elements
-      dispatch({ type: 'RESET_CANVAS' });
+      console.log('[CVCanvasProvider] Generated canvas elements:', canvasElements.length, canvasElements);
       
-      // Set canvas size from template
+      // Ensure all elements are visible and editable
+      const visibleElements = canvasElements.map(element => ({
+        ...element,
+        visible: element.visible !== false,
+        locked: false, // Ensure all elements are editable
+      }));
+      
+      // Reset canvas and add all elements in one action
       dispatch({
-        type: 'SET_CANVAS_SIZE',
+        type: 'RESET_AND_ADD_ELEMENTS',
+        elements: visibleElements,
         width: template.canvas.width,
         height: template.canvas.height,
       });
 
-      // Add all elements
-      canvasElements.forEach(element => {
-        dispatch({ type: 'ADD_ELEMENT', element });
-      });
-
-      console.log('[CVCanvasProvider] Template applied, elements added:', canvasElements.length);
+      console.log('[CVCanvasProvider] Template applied, elements added:', visibleElements.length);
+      
+      // Log final state after a short delay
+      setTimeout(() => {
+        console.log('[CVCanvasProvider] Final state check - elements in canvas:', stateRef.current.elements.length);
+        console.log('[CVCanvasProvider] Elements details:', stateRef.current.elements.map(el => ({
+          id: el.id,
+          type: el.type,
+          visible: el.visible,
+          x: el.x,
+          y: el.y
+        })));
+      }, 100);
     }, [dispatch]);
 
     /**

@@ -18,6 +18,17 @@ const CanvasEditor: React.FC = () => {
     setResizeState,
   } = useCanvas();
 
+  // Debug: Log elements count
+  useEffect(() => {
+    console.log('[CanvasEditor] Elements in state:', state.elements.length, state.elements.map(el => ({
+      id: el.id,
+      type: el.type,
+      visible: el.visible,
+      x: el.x,
+      y: el.y
+    })));
+  }, [state.elements.length, state.elements]);
+
   const { snapToGrid } = useCanvasDragResize();
 
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -225,16 +236,23 @@ const CanvasEditor: React.FC = () => {
               }}
             >
               {/* Render Elements */}
-              {state.elements
-                .sort((a, b) => a.zIndex - b.zIndex)
-                .map((element) => (
-                  <CanvasElementComponent
-                    key={element.id}
-                    element={element}
-                    isSelected={state.selectedElementIds.includes(element.id)}
-                    snapToGrid={snapToGridValue}
-                  />
-                ))}
+              {state.elements.length > 0 ? (
+                state.elements
+                  .filter(element => element.visible !== false)
+                  .sort((a, b) => a.zIndex - b.zIndex)
+                  .map((element) => (
+                    <CanvasElementComponent
+                      key={element.id}
+                      element={element}
+                      isSelected={state.selectedElementIds.includes(element.id)}
+                      snapToGrid={snapToGridValue}
+                    />
+                  ))
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
+                  No elements to display. Import a PDF or create elements.
+                </div>
+              )}
             </div>
           </div>
         </div>

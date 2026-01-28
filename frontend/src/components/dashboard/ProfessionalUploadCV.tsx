@@ -4,6 +4,8 @@ import { ProfessionalIcons } from '../ui/IconSystem';
 import { ProButton } from '../ui/ProButton';
 import { ProCard } from '../ui/ProCard';
 import { ProInput } from '../ui/ProInput';
+import { fileUploadService } from '../../services/fileUploadService';
+import type { CVData } from '../../types/api';
 import toast from 'react-hot-toast';
 
 interface UploadedFile {
@@ -40,7 +42,7 @@ interface ParsedCVData {
   skills: string[];
 }
 
-export const ProfessionalUploadCV: React.FC = () => {
+const ProfessionalUploadCV: React.FC = () => {
   const navigate = useNavigate();
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -58,90 +60,131 @@ export const ProfessionalUploadCV: React.FC = () => {
     setIsDragOver(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    processFiles(droppedFiles);
-  }, []);
+  const processPDFFile = useCallback(async (fileObj: UploadedFile, file: File) => {
+    try {
+      // Update status to processing
+      setFiles(prev => prev.map(f => 
+        f.id === fileObj.id 
+          ? { ...f, status: 'processing', progress: 50 }
+          : f
+      ));
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const selectedFiles = Array.from(e.target.files);
-      processFiles(selectedFiles);
-    }
-  }, []);
-
-  const processFiles = useCallback((fileList: File[]) => {
-    const validFiles = fileList.filter(file => {
-      const isValidType = file.type === 'application/pdf' || 
-                           file.type === 'application/msword' || 
-                           file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-                           file.type === 'text/plain';
-      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
+      // Upload and parse PDF file
+      console.log('[ProfessionalUploadCV] Starting PDF upload for file:', file.name, file.type, file.size);
+      const result = await fileUploadService.uploadCVFile(file);
       
-      if (!isValidType) {
-        toast.error(`Invalid file type: ${file.name}. Please upload PDF, DOC, DOCX, or TXT files.`);
-        return false;
-      }
+      console.log('[ProfessionalUploadCV] Upload result:', {
+        success: result.success,
+        hasCvData: !!result.cvData,
+        error: result.error,
+        cvDataKeys: result.cvData ? Object.keys(result.cvData) : null
+      });
       
-      if (!isValidSize) {
-        toast.error(`File too large: ${file.name}. Maximum size is 10MB.`);
-        return false;
-      }
-      
-      return true;
-    });
+      if (result.success && result.cvData) {
+        console.log('[ProfessionalUploadCV] CV Data structure:', {
+          personalInfo: result.cvData.personalInfo,
+          experienceCount: result.cvData.experience?.length || 0,
+          educationCount: result.cvData.education?.length || 0,
+          skillsCount: result.cvData.skills?.length || 0
+        });
+        // Convert CVData to ParsedCVData format for display
+        const parsedCV: ParsedCVData = {
+          personalInfo: {
+            fullName: `${result.cvData.personalInfo.firstName || ''} ${result.cvData.personalInfo.lastName || ''}`.trim() || 'Unknown',
+            email: result.cvData.personalInfo.email || '',
+            phone: result.cvData.personalInfo.phone || '',
+            location: result.cvData.personalInfo.location || '',
+            summary: result.cvData.personalInfo.summary || ''
+          },
+          experience: result.cvData.experience.map(exp => ({
+            title: exp.position || '',
+            company: exp.company || '',
+            duration: `${exp.startDate || ''} - ${exp.current ? 'Present' : exp.endDate || ''}`.trim(),
+            description: exp.description || ''
+          })),
+          education: result.cvData.education.map(edu => ({
+            degree: edu.degree || '',
+            institution: edu.school || '',
+            duration: `${edu.startDate || ''} - ${edu.current ? 'Present' : edu.endDate || ''}`.trim()
+          })),
+          skills: result.cvData.skills.map(skill => skill.name || '').filter(Boolean)
+        };
 
-    const newFiles = validFiles.map(file => ({
-      id: Date.now().toString() + Math.random().toString(),
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      status: 'uploading' as const,
-      progress: 0
-    }));
-
-    setFiles(prev => [...prev, ...newFiles]);
-    
-    // Simulate upload and processing
-    newFiles.forEach((fileObj, index) => {
-      simulateUpload(fileObj, index);
-    });
-  }, []);
-
-  const simulateUpload = useCallback((fileObj: UploadedFile, index: number) => {
-    let progress = 0;
-    const uploadInterval = setInterval(() => {
-      progress += Math.random() * 30;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(uploadInterval);
+        setParsedCV(parsedCV);
         
-        // Update file status to processing
         setFiles(prev => prev.map(f => 
           f.id === fileObj.id 
-            ? { ...f, status: 'processing', progress: 100 }
+            ? { ...f, status: 'completed', parsedCV, extractedData: result.extractedData }
             : f
         ));
         
-        // Simulate processing
-        setTimeout(() => {
-          simulateProcessing(fileObj);
-        }, 1000);
+        // Auto-navigate to editor after successful import
+        console.log('[ProfessionalUploadCV] PDF processed successfully, navigating to editor with cvData:', result.cvData);
+        console.log('[ProfessionalUploadCV] Navigation state will be:', {
+          cvData: result.cvData,
+          templateId: undefined,
+          autoEdit: true
+        });
+        
+        // Store CV data in sessionStorage as backup
+        try {
+          sessionStorage.setItem('pending_cv_data', JSON.stringify(result.cvData));
+          console.log('[ProfessionalUploadCV] CV data stored in sessionStorage');
+        } catch (storageError) {
+          console.warn('[ProfessionalUploadCV] Failed to store in sessionStorage:', storageError);
+        }
+        
+        // Navigate immediately - navigate synchronously
+        console.log('[ProfessionalUploadCV] About to navigate to /editor');
+        console.log('[ProfessionalUploadCV] Navigation function:', typeof navigate);
+        console.log('[ProfessionalUploadCV] CV Data to pass:', {
+          hasCvData: !!result.cvData,
+          personalInfo: result.cvData?.personalInfo,
+          experienceCount: result.cvData?.experience?.length,
+          educationCount: result.cvData?.education?.length,
+          skillsCount: result.cvData?.skills?.length
+        });
+        
+        try {
+          const navigationState = { 
+            cvData: result.cvData,
+            templateId: undefined, // Will use default template
+            autoEdit: true // Flag to indicate auto-edit mode
+          };
+          
+          console.log('[ProfessionalUploadCV] Calling navigate with state:', navigationState);
+          
+          // Use both navigation methods for reliability
+          navigate('/editor', { 
+            state: navigationState,
+            replace: false // Allow back navigation
+          });
+          
+          console.log('[ProfessionalUploadCV] Navigation called successfully');
+          
+          // Show success message
+          toast.success(`Successfully processed ${fileObj.name}. Opening editor...`, { duration: 2000 });
+          
+        } catch (error) {
+          console.error('[ProfessionalUploadCV] Navigation error:', error);
+          toast.error('Failed to navigate to editor. Please try again.');
+        }
       } else {
-        setFiles(prev => prev.map(f => 
-          f.id === fileObj.id 
-            ? { ...f, progress }
-            : f
-        ));
+        throw new Error(result.error || 'Failed to parse PDF');
       }
-    }, 200);
-  }, []);
+    } catch (error: any) {
+      console.error('Error processing PDF:', error);
+      setFiles(prev => prev.map(f => 
+        f.id === fileObj.id 
+          ? { ...f, status: 'error', error: error.message }
+          : f
+      ));
+      toast.error(`Failed to process ${fileObj.name}: ${error.message}`);
+    }
+  }, [navigate]);
 
   const simulateProcessing = useCallback((fileObj: UploadedFile) => {
-    // Simulate CV parsing
+    // Simulate CV parsing for non-PDF files (legacy behavior)
     setTimeout(() => {
       const mockParsedCV: ParsedCVData = {
         personalInfo: {
@@ -186,6 +229,96 @@ export const ProfessionalUploadCV: React.FC = () => {
       toast.success(`Successfully processed ${fileObj.name}`);
     }, 2000);
   }, []);
+
+  const simulateUpload = useCallback((fileObj: UploadedFile, index: number) => {
+    let progress = 0;
+    const uploadInterval = setInterval(() => {
+      progress += Math.random() * 30;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(uploadInterval);
+        
+        // Update file status to processing
+        setFiles(prev => prev.map(f => 
+          f.id === fileObj.id 
+            ? { ...f, status: 'processing', progress: 100 }
+            : f
+        ));
+        
+        // Simulate processing
+        setTimeout(() => {
+          simulateProcessing(fileObj);
+        }, 1000);
+      } else {
+        setFiles(prev => prev.map(f => 
+          f.id === fileObj.id 
+            ? { ...f, progress }
+            : f
+        ));
+      }
+    }, 200);
+  }, [simulateProcessing]);
+
+  const processFiles = useCallback((fileList: File[]) => {
+    const validFiles = fileList.filter(file => {
+      const isValidType = file.type === 'application/pdf' || 
+                           file.type === 'application/msword' || 
+                           file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+                           file.type === 'text/plain';
+      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
+      
+      if (!isValidType) {
+        toast.error(`Invalid file type: ${file.name}. Please upload PDF, DOC, DOCX, or TXT files.`);
+        return false;
+      }
+      
+      if (!isValidSize) {
+        toast.error(`File too large: ${file.name}. Maximum size is 10MB.`);
+        return false;
+      }
+      
+      return true;
+    });
+
+    const newFiles = validFiles.map(file => ({
+      id: Date.now().toString() + Math.random().toString(),
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      status: 'uploading' as const,
+      progress: 0
+    }));
+
+    setFiles(prev => [...prev, ...newFiles]);
+    
+    // Process files - PDF files will auto-open editor
+    newFiles.forEach((fileObj, index) => {
+      const file = validFiles[index];
+      
+      // For PDF files, process directly and auto-open editor
+      if (file.type === 'application/pdf') {
+        processPDFFile(fileObj, file);
+      } else {
+        // For other file types, simulate upload (legacy behavior)
+        simulateUpload(fileObj, index);
+      }
+    });
+  }, [processPDFFile, simulateUpload]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    processFiles(droppedFiles);
+  }, [processFiles]);
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const selectedFiles = Array.from(e.target.files);
+      processFiles(selectedFiles);
+    }
+  }, [processFiles]);
 
   const removeFile = useCallback((id: string) => {
     setFiles(prev => prev.filter(f => f.id !== id));

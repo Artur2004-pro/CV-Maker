@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Save, Download, Eye, Settings, Plus, Trash2, Edit2 } from 'lucide-react';
 import { ProButton } from '../ui/ProButton';
 import { ProCard } from '../ui/ProCard';
 import { ProInput } from '../ui/ProInput';
 import { pdfGenerator } from '../../utils/pdfGenerator';
+import type { CVData as APICVData } from '../../types/api';
 import toast from 'react-hot-toast';
 
 interface CVData {
@@ -53,6 +55,7 @@ interface CVData {
 }
 
 export const SimpleCVEditor: React.FC = () => {
+  const location = useLocation();
   const [cvData, setCvData] = useState<CVData>({
     personalInfo: {
       fullName: '',
@@ -72,9 +75,64 @@ export const SimpleCVEditor: React.FC = () => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
+  // Convert API CVData to SimpleCVEditor CVData format
+  const convertAPICVDataToEditorFormat = (apiData: APICVData): CVData => {
+    return {
+      personalInfo: {
+        fullName: `${apiData.personalInfo.firstName || ''} ${apiData.personalInfo.lastName || ''}`.trim(),
+        email: apiData.personalInfo.email || '',
+        phone: apiData.personalInfo.phone || '',
+        location: apiData.personalInfo.location || '',
+        summary: apiData.personalInfo.summary || '',
+        website: apiData.personalInfo.website,
+        linkedin: apiData.personalInfo.linkedin
+      },
+      experience: apiData.experience.map(exp => ({
+        id: exp.id,
+        title: exp.position || '',
+        company: exp.company || '',
+        location: '',
+        startDate: exp.startDate || '',
+        endDate: exp.endDate || '',
+        current: exp.current || false,
+        description: exp.description || ''
+      })),
+      education: apiData.education.map(edu => ({
+        id: edu.id,
+        degree: edu.degree || '',
+        institution: edu.school || '',
+        location: '',
+        startDate: edu.startDate || '',
+        endDate: edu.endDate || '',
+        current: edu.current || false,
+        gpa: edu.gpa
+      })),
+      skills: apiData.skills.map(skill => ({
+        id: skill.id,
+        name: skill.name || '',
+        level: skill.level || 'Intermediate',
+        category: ''
+      })),
+      projects: []
+    };
+  };
+
   useEffect(() => {
-    loadCVData();
-  }, []);
+    // Check if CV data was passed via navigation state
+    const state = location.state as { cvData?: APICVData; autoEdit?: boolean } | null;
+    
+    if (state?.cvData) {
+      console.log('[SimpleCVEditor] Loading CV data from navigation state:', state.cvData);
+      const convertedData = convertAPICVDataToEditorFormat(state.cvData);
+      setCvData(convertedData);
+      // Save to localStorage as well
+      localStorage.setItem('cv_data', JSON.stringify(convertedData));
+      toast.success('CV data loaded successfully!');
+    } else {
+      // Load from localStorage if no state data
+      loadCVData();
+    }
+  }, [location.state]);
 
   const loadCVData = () => {
     try {
