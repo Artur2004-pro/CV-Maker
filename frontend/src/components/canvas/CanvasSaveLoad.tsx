@@ -711,11 +711,10 @@ const CanvasSaveLoad: React.FC<CanvasSaveLoadProps> = ({
             dispatch({ type: 'LOAD_PROJECT', project });
             onLoad?.(project);
             
-            const successMessage = document.createElement('div');
-            successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-            successMessage.textContent = 'PDF imported successfully! You can now edit the CV.';
-            document.body.appendChild(successMessage);
-            setTimeout(() => successMessage.remove(), 3000);
+            toast.success('PDF imported successfully! You can now edit the CV.', {
+              icon: '📄',
+              duration: 4000,
+            });
           } else {
             throw new Error(result.error || 'Failed to parse PDF');
           }
@@ -731,16 +730,17 @@ const CanvasSaveLoad: React.FC<CanvasSaveLoadProps> = ({
               dispatch({ type: 'LOAD_PROJECT', project });
               onLoad?.(project);
               
-              // Show success message
-              const successMessage = document.createElement('div');
-              successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-              successMessage.textContent = 'Project imported successfully!';
-              document.body.appendChild(successMessage);
-              setTimeout(() => successMessage.remove(), 3000);
+              toast.success('Project imported successfully!', {
+                icon: '📂',
+                duration: 3000,
+              });
             }
           } catch (error) {
             console.error('Failed to import project:', error);
-            alert('Failed to import project. Please make sure it is a valid JSON or PDF file.');
+            toast.error('Failed to import project. Please make sure it is a valid JSON or PDF file.', {
+              icon: '❌',
+              duration: 4000,
+            });
           } finally {
             setIsLoading(false);
           }
@@ -754,9 +754,15 @@ const CanvasSaveLoad: React.FC<CanvasSaveLoadProps> = ({
       // Check if it's a quota exceeded error
       const errorMessage = error?.message || '';
       if (errorMessage.includes('quota') || errorMessage.includes('QuotaExceededError')) {
-        alert('Storage quota exceeded. Please delete some old projects or clear your browser storage. You can do this by going to your browser settings and clearing site data.');
+        toast.error('Storage quota exceeded. Please delete some old projects or clear your browser storage.', {
+          icon: '💾',
+          duration: 5000,
+        });
       } else {
-        alert(`Failed to import file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        toast.error(`Failed to import file: ${error instanceof Error ? error.message : 'Unknown error'}`, {
+          icon: '❌',
+          duration: 4000,
+        });
       }
     } finally {
       setIsLoading(false);
@@ -768,14 +774,26 @@ const CanvasSaveLoad: React.FC<CanvasSaveLoadProps> = ({
   };
 
   const handleDelete = (projectId: string) => {
-    if (confirm('Are you sure you want to delete this project?')) {
+    const project = canvasStorageService.getProject(projectId);
+    const projectName = project?.name || 'this project';
+    
+    if (window.confirm(`Are you sure you want to delete "${projectName}"?`)) {
       try {
         canvasStorageService.deleteProject(projectId);
+        toast.success('Project deleted successfully!', {
+          icon: '🗑️',
+          duration: 3000,
+        });
         // Refresh the projects list
-        window.location.reload();
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
       } catch (error) {
         console.error('Failed to delete project:', error);
-        alert('Failed to delete project');
+        toast.error('Failed to delete project', {
+          icon: '❌',
+          duration: 3000,
+        });
       }
     }
   };

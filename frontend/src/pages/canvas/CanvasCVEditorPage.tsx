@@ -18,7 +18,7 @@ interface EditorLocationState {
  * Inner component that handles template application after CVCanvasProvider is initialized
  */
 const CanvasCVEditorContent: React.FC = () => {
-  const { applyTemplate, cvData, templateId } = useCVCanvas();
+  const { applyTemplate, cvData, templateId, updateCVFromElement } = useCVCanvas();
   const initialTemplateIdRef = useRef<string | null>(null);
   const applyTemplateRef = useRef(applyTemplate);
   const cvDataRef = useRef(cvData);
